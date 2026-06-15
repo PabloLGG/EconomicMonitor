@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="US economic indicators dashboard — GDP, S&P 500, jobs, Fed Funds, yield curve, corporate profits, and CPI surprise."
+    />
+    <title>Economic Monitor</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="site-header">
+        <h1>Economic Monitor</h1>
+        <p class="subtitle">
+          Live US macro indicators from FRED &amp; NBER · Data refreshes on each visit
+        </p>
+        <p id="status" class="status" aria-live="polite">Loading data…</p>
+      </header>
+      <main id="charts" class="charts-grid"></main>
+      <footer class="site-footer">
+        <p>
+          Sources: Federal Reserve Economic Data (FRED), National Bureau of Economic Research (NBER),
+          Bureau of Economic Analysis (BEA), Bureau of Labor Statistics (BLS),
+          Cleveland Fed Inflation Nowcast.
+        </p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
