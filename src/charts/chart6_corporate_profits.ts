@@ -15,7 +15,7 @@ export function renderCorporateProfits(
 
   const layout = singleAxisLayout(
     'Corporate Profits After Tax per Unit of Real GVA',
-    'Profit per unit ($)',
+    'Profit per unit (% of real GVA)',
     recessionBands,
   );
 
@@ -39,7 +39,7 @@ export function renderCorporateProfits(
     [
       {
         x: corpProfits.map((p) => formatDate(p.date)),
-        y: corpProfits.map((p) => p.value),
+        y: corpProfits.map((p) => p.value * 100),
         name: 'Corp. profits / real GVA',
         type: 'scatter',
         mode: 'lines',
@@ -48,7 +48,7 @@ export function renderCorporateProfits(
       },
       {
         x: recent.map((p) => formatDate(p.date)),
-        y: recent.map((p) => p.value),
+        y: recent.map((p) => p.value * 100),
         name: 'Last 5 years',
         type: 'scatter',
         mode: 'lines',
