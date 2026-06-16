@@ -129,3 +129,30 @@ export function filterAfter(points: DataPoint[], cutoff: Date): DataPoint[] {
 export function monthKey(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
 }
+
+/** Sorted month-end dates covering all points in the given series. */
+export function buildMonthTimeline(...series: DataPoint[][]): Date[] {
+  const keys = new Set<string>();
+  for (const s of series) {
+    for (const p of s) {
+      keys.add(monthKey(p.date));
+    }
+  }
+  return [...keys]
+    .sort()
+    .map((key) => {
+      const [y, m] = key.split('-').map(Number);
+      return new Date(Date.UTC(y, m, 0));
+    });
+}
+
+export function alignSeriesByMonth(
+  series: DataPoint[],
+  dates: Date[],
+): (number | null)[] {
+  const map = new Map<string, number>();
+  for (const p of series) {
+    map.set(monthKey(p.date), p.value);
+  }
+  return dates.map((d) => map.get(monthKey(d)) ?? null);
+}

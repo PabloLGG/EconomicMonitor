@@ -37,7 +37,7 @@ async function init(): Promise<void> {
     chartsContainer,
     CHART1_META.id,
     CHART1_META.title,
-    undefined,
+    CHART1_META.subtitle,
     CHART1_META.footnote,
   );
   const el2 = renderChartSection(
@@ -58,21 +58,21 @@ async function init(): Promise<void> {
     chartsContainer,
     CHART4_META.id,
     CHART4_META.title,
-    undefined,
+    CHART4_META.subtitle,
     CHART4_META.footnote,
   );
   const el5 = renderChartSection(
     chartsContainer,
     CHART5_META.id,
     CHART5_META.title,
-    undefined,
+    CHART5_META.subtitle,
     CHART5_META.footnote,
   );
   const el6 = renderChartSection(
     chartsContainer,
     CHART6_META.id,
     CHART6_META.title,
-    CHART6_META.subtitle,
+    undefined,
     CHART6_META.footnote,
   );
   const el7 = renderChartSection(
@@ -101,11 +101,21 @@ async function init(): Promise<void> {
       safeRender(el1, () =>
         renderGdpSp500(el1, data.gdpYoy, data.sp500, recessionBands),
       ),
-      safeRender(el2, () => renderGdpJobs(el2, data.gdpYoy, data.jobsCreated)),
-      safeRender(el3, () => renderFedFundsJobs(el3, data.fedFundsYoy, data.jobsCreated)),
-      safeRender(el4, () => renderYieldGdp(el4, data.yieldCurve, data.gdpYoy, recessionBands)),
-      safeRender(el5, () => renderYieldClaims(el5, data.yieldCurve, data.joblessClaims)),
-      safeRender(el6, () => renderCorporateProfits(el6, data.corpProfits, recessionBands)),
+      safeRender(el2, () =>
+        renderGdpJobs(el2, data.gdpYoy, data.jobsCreated, recessionBands),
+      ),
+      safeRender(el3, () =>
+        renderFedFundsJobs(el3, data.fedFundsChange, data.jobsCreated, recessionBands),
+      ),
+      safeRender(el4, () =>
+        renderYieldGdp(el4, data.yieldCurve, data.gdpYoy, recessionBands),
+      ),
+      safeRender(el5, () =>
+        renderYieldClaims(el5, data.yieldCurve, data.joblessClaims, recessionBands),
+      ),
+      safeRender(el6, () =>
+        renderCorporateProfits(el6, data.corpProfits, recessionBands),
+      ),
       safeRender(el7, () => {
         const surprise = buildCpiSurpriseSeries(
           data.cpiYoy,
@@ -115,7 +125,7 @@ async function init(): Promise<void> {
         if (surprise.length === 0) {
           throw new Error('No CPI surprise data could be computed.');
         }
-        renderCpiSurpriseSp500(el7, surprise, data.sp500);
+        renderCpiSurpriseSp500(el7, surprise, data.sp500, recessionBands);
       }),
     ]);
 

@@ -1,43 +1,38 @@
-import Plotly from 'plotly.js-dist-min';
 import type { DataPoint } from '../api/fred';
 import { formatDate } from '../api/fred';
 import { forwardFillToDates, mergeMonthlyTimeline } from '../utils/align';
-import { rollingCorrelation } from '../utils/correlation';
-import { dualAxisLayout, FOOTNOTES } from './common';
+import type { RecessionBand } from '../utils/align';
+import { FOOTNOTES, HOVER_Y, THOUSANDS_UNIT } from './common';
+import {
+  buildDualPanelLayout,
+  correlatePlottedPair,
+  correlationTrace,
+  CORRELATION_SUBTITLE,
+  plotDualPanelChart,
+} from './dualPanelChart';
 
-const CORRELATION_WINDOW = 36;
+const GDP_AXIS: [number, number] = [-5, 7.5];
+const JOBS_AXIS: [number, number] = [-1000, 1000];
 
 export function renderGdpJobs(
   el: HTMLElement,
   gdpYoy: DataPoint[],
   jobsCreated: DataPoint[],
+  recessionBands: RecessionBand[],
 ): void {
   const timeline = mergeMonthlyTimeline(jobsCreated, gdpYoy);
   const gdpFilled = forwardFillToDates(gdpYoy, timeline);
-  const corr = rollingCorrelation(gdpFilled, jobsCreated, timeline, CORRELATION_WINDOW);
+  const corr = correlatePlottedPair(gdpFilled, jobsCreated);
 
-  const layout = dualAxisLayout({
-    title: 'Real GDP YoY vs Jobs Created',
+  const layout = buildDualPanelLayout({
     yLeftTitle: 'Real GDP YoY (%)',
-    yRightTitle: 'Jobs Created (000s)',
+    yRightTitle: `Jobs Created ${THOUSANDS_UNIT}`,
+    yaxisRange: GDP_AXIS,
+    yaxis2Range: JOBS_AXIS,
+    recessionBands,
   });
 
-  layout.xaxis2 = {
-    domain: [0.62, 0.98],
-    anchor: 'y3',
-    type: 'date',
-    showgrid: false,
-    tickfont: { size: 9, color: '#8b9cb3' },
-  };
-  layout.yaxis3 = {
-    domain: [0.55, 0.95],
-    anchor: 'x2',
-    title: { text: 'Rolling corr.', font: { size: 9, color: '#fbbf24' } },
-    tickfont: { size: 9, color: '#fbbf24' },
-    gridcolor: '#2d3a4f',
-  };
-
-  Plotly.newPlot(
+  plotDualPanelChart(
     el,
     [
       {
@@ -48,36 +43,27 @@ export function renderGdpJobs(
         mode: 'lines',
         line: { color: '#60a5fa', width: 2 },
         yaxis: 'y',
+        hovertemplate: HOVER_Y.pct2,
       },
       {
         x: jobsCreated.map((p) => formatDate(p.date)),
         y: jobsCreated.map((p) => p.value),
-        name: 'Jobs Created (000s)',
+        name: `Jobs Created ${THOUSANDS_UNIT}`,
         type: 'scatter',
         mode: 'lines',
         line: { color: '#4ade80', width: 1.5 },
         yaxis: 'y2',
+        hovertemplate: HOVER_Y.int0,
       },
-      {
-        x: corr.map((p) => formatDate(p.date)),
-        y: corr.map((p) => p.value),
-        name: `${CORRELATION_WINDOW}m correlation`,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: '#fbbf24', width: 1.5 },
-        xaxis: 'x2',
-        yaxis: 'y3',
-        showlegend: false,
-      },
+      correlationTrace(corr),
     ],
     layout,
-    { responsive: true, displayModeBar: false },
   );
 }
 
 export const CHART2_META = {
   id: 'chart2',
   title: '2. US Economic Growth & Jobs Created',
-  subtitle: `${CORRELATION_WINDOW}-month rolling correlation shown in inset (upper right).`,
+  subtitle: `${CORRELATION_SUBTITLE} GDP axis: −5% to 7.5%. Jobs axis: ±1,000 ${THOUSANDS_UNIT}.`,
   footnote: FOOTNOTES.fredNber,
 };

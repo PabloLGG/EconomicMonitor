@@ -1,9 +1,15 @@
-import Plotly from 'plotly.js-dist-min';
 import type { DataPoint } from '../api/fred';
 import { formatDate } from '../api/fred';
 import { forwardFillToDates, mergeMonthlyTimeline } from '../utils/align';
 import type { RecessionBand } from '../utils/align';
-import { dualAxisLayout, FOOTNOTES } from './common';
+import { FOOTNOTES, HOVER_Y, indexTicksEvery500, SP500_AXIS_TITLE, SP500_TRACE_NAME } from './common';
+import {
+  buildDualPanelLayout,
+  correlatePlottedPair,
+  correlationTrace,
+  CORRELATION_SUBTITLE,
+  plotDualPanelChart,
+} from './dualPanelChart';
 
 export function renderGdpSp500(
   el: HTMLElement,
@@ -13,8 +19,16 @@ export function renderGdpSp500(
 ): void {
   const timeline = mergeMonthlyTimeline(sp500, gdpYoy);
   const gdpFilled = forwardFillToDates(gdpYoy, timeline);
+  const corr = correlatePlottedPair(gdpFilled, sp500);
 
-  Plotly.newPlot(
+  const layout = buildDualPanelLayout({
+    yLeftTitle: 'Real GDP YoY (%)',
+    yRightTitle: SP500_AXIS_TITLE,
+    yaxis2Tickvals: indexTicksEvery500(sp500.map((p) => p.value)),
+    recessionBands,
+  });
+
+  plotDualPanelChart(
     el,
     [
       {
@@ -25,29 +39,27 @@ export function renderGdpSp500(
         mode: 'lines',
         line: { color: '#60a5fa', width: 2 },
         yaxis: 'y',
+        hovertemplate: HOVER_Y.pct2,
       },
       {
         x: sp500.map((p) => formatDate(p.date)),
         y: sp500.map((p) => p.value),
-        name: 'S&P 500',
+        name: SP500_TRACE_NAME,
         type: 'scatter',
         mode: 'lines',
         line: { color: '#4ade80', width: 1.5 },
         yaxis: 'y2',
+        hovertemplate: HOVER_Y.points0,
       },
+      correlationTrace(corr),
     ],
-    dualAxisLayout({
-      title: 'Real GDP YoY vs S&P 500',
-      yLeftTitle: 'Real GDP YoY (%)',
-      yRightTitle: 'S&P 500 (index)',
-      recessionBands,
-    }),
-    { responsive: true, displayModeBar: false },
+    layout,
   );
 }
 
 export const CHART1_META = {
   id: 'chart1',
   title: '1. US Economic Growth & S&P 500',
-  footnote: FOOTNOTES.fredNber,
+  subtitle: CORRELATION_SUBTITLE,
+  footnote: FOOTNOTES.sp500,
 };

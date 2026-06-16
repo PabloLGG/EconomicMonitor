@@ -28,7 +28,12 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Fetch economic data
+        env:
+          VITE_FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: npm run fetch-data
 
       - name: Build
         env:

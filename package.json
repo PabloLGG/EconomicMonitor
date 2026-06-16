@@ -3,8 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
+    "fetch-data": "node scripts/fetch-economic-data.mjs",
+    "prebuild": "node scripts/fetch-economic-data.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

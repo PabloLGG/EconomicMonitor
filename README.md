@@ -36,13 +36,49 @@ The GitHub Actions workflow builds on every push to `main` and daily at 06:00 UT
 
 ## Local development
 
+### Prerequisites
+
+Install **Node.js 20+** if you do not have it yet:
+
 ```bash
+brew install node
+# or: nvm install   (uses .nvmrc)
+```
+
+Verify:
+
+```bash
+node -v   # should print v20.x or newer
+npm -v
+```
+
+### Setup
+
+```bash
+cd EconomicMonitor
 npm install
-echo "VITE_FRED_API_KEY=your_key_here" > .env.local
+cp .env.example .env.local
+```
+
+Edit `.env.local` and paste your real FRED API key (not the placeholder text):
+
+```
+VITE_FRED_API_KEY=abc123youractualkey
+```
+
+Get a free key at [https://fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html).
+
+### Run
+
+```bash
 npm run dev
 ```
 
-For local dev without a subpath, temporarily set `base: '/'` in `vite.config.ts`.
+Open **http://localhost:5173/** in your browser. (Local dev uses `/` as the base path; GitHub Pages uses `/EconomicMonitor/`.)
+
+FRED blocks direct browser requests (CORS). Local dev automatically proxies API calls through Vite — just run `npm run dev` and keep that terminal open.
+
+If charts fail to load, restart the dev server after editing `.env.local` so the new API key is picked up.
 
 ## Build
 

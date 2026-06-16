@@ -1,4 +1,4 @@
-import { alignSeriesToDates } from './align';
+import { alignSeriesByMonth, buildMonthTimeline } from './align';
 import type { DataPoint } from '../api/fred';
 
 function pearson(xs: number[], ys: number[]): number | null {
@@ -28,14 +28,14 @@ function pearson(xs: number[], ys: number[]): number | null {
 export function rollingCorrelation(
   seriesA: DataPoint[],
   seriesB: DataPoint[],
-  dates: Date[],
   windowMonths: number,
 ): DataPoint[] {
-  const aVals = alignSeriesToDates(seriesA, dates);
-  const bVals = alignSeriesToDates(seriesB, dates);
+  const timeline = buildMonthTimeline(seriesA, seriesB);
+  const aVals = alignSeriesByMonth(seriesA, timeline);
+  const bVals = alignSeriesByMonth(seriesB, timeline);
   const result: DataPoint[] = [];
 
-  for (let i = windowMonths - 1; i < dates.length; i++) {
+  for (let i = windowMonths - 1; i < timeline.length; i++) {
     const xs: number[] = [];
     const ys: number[] = [];
 
@@ -51,7 +51,7 @@ export function rollingCorrelation(
     if (xs.length >= windowMonths - 2) {
       const r = pearson(xs, ys);
       if (r != null) {
-        result.push({ date: dates[i], value: r });
+        result.push({ date: timeline[i], value: r });
       }
     }
   }

@@ -1,9 +1,15 @@
-import Plotly from 'plotly.js-dist-min';
 import type { DataPoint } from '../api/fred';
 import { formatDate } from '../api/fred';
 import { forwardFillToDates, mergeMonthlyTimeline } from '../utils/align';
 import type { RecessionBand } from '../utils/align';
-import { dualAxisLayout, FOOTNOTES } from './common';
+import { FOOTNOTES, HOVER_Y } from './common';
+import {
+  buildDualPanelLayout,
+  correlatePlottedPair,
+  correlationTrace,
+  CORRELATION_SUBTITLE,
+  plotDualPanelChart,
+} from './dualPanelChart';
 
 export function renderYieldGdp(
   el: HTMLElement,
@@ -13,8 +19,15 @@ export function renderYieldGdp(
 ): void {
   const timeline = mergeMonthlyTimeline(yieldCurve, gdpYoy);
   const gdpFilled = forwardFillToDates(gdpYoy, timeline);
+  const corr = correlatePlottedPair(yieldCurve, gdpFilled);
 
-  Plotly.newPlot(
+  const layout = buildDualPanelLayout({
+    yLeftTitle: 'Yield spread (pp)',
+    yRightTitle: 'Real GDP YoY (%)',
+    recessionBands,
+  });
+
+  plotDualPanelChart(
     el,
     [
       {
@@ -25,6 +38,7 @@ export function renderYieldGdp(
         mode: 'lines',
         line: { color: '#60a5fa', width: 2 },
         yaxis: 'y',
+        hovertemplate: HOVER_Y.pct2,
       },
       {
         x: gdpFilled.map((p) => formatDate(p.date)),
@@ -34,20 +48,17 @@ export function renderYieldGdp(
         mode: 'lines',
         line: { color: '#4ade80', width: 1.5 },
         yaxis: 'y2',
+        hovertemplate: HOVER_Y.pct2,
       },
+      correlationTrace(corr),
     ],
-    dualAxisLayout({
-      title: 'Yield Curve (10Y − 3M) vs Real GDP YoY',
-      yLeftTitle: 'Yield spread (pp)',
-      yRightTitle: 'Real GDP YoY (%)',
-      recessionBands,
-    }),
-    { responsive: true, displayModeBar: false },
+    layout,
   );
 }
 
 export const CHART4_META = {
   id: 'chart4',
   title: '4. Yield Curve vs US Economic Growth',
+  subtitle: CORRELATION_SUBTITLE,
   footnote: FOOTNOTES.fredNber,
 };
