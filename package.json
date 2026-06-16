@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "vite",
     "fetch-data": "node scripts/fetch-economic-data.mjs",
+    "ml:prepare": "cd ml && python3 -m data.prepare_panel",
+    "ml:train": "cd ml && python3 -m train.train_all",
     "prebuild": "node scripts/fetch-economic-data.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview"
@@ -19,6 +21,7 @@
     "vite": "^6.0.7"
   },
   "dependencies": {
+    "onnxruntime-web": "^1.22.0",
     "plotly.js-dist-min": "^2.35.3"
   }
 }

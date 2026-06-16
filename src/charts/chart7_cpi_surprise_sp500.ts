@@ -1,57 +1,91 @@
 import type { DataPoint } from '../api/fred';
-import { formatDate } from '../api/fred';
 import type { RecessionBand } from '../utils/align';
-import { FOOTNOTES, HOVER_Y, indexTicksEvery500, SP500_AXIS_TITLE, SP500_TRACE_NAME } from './common';
+import { createChartBacktestController } from '../backtest/chartBacktestController';
+import { createPastFutureTraces, latestSeriesDate } from '../backtest/seriesSplit';
+import { registerChartBacktest } from './chartRegister';
+import { FOOTNOTES, HOVER_Y, SP500_AXIS_TITLE, SP500_TRACE_NAME } from './common';
 import {
   buildDualPanelLayout,
   correlatePlottedPair,
-  correlationTrace,
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
+import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
-export function renderCpiSurpriseSp500(
+const SURPRISE_PAST = 0;
+const SURPRISE_FUTURE = 1;
+const SP_PAST = 2;
+const SP_FUTURE = 3;
+const CORR_PAST = 4;
+const CORR_FUTURE = 5;
+
+export async function renderCpiSurpriseSp500(
   el: HTMLElement,
   surprise: DataPoint[],
   sp500: DataPoint[],
   recessionBands: RecessionBand[],
-): void {
+  onPanelDate: (date: Date | null) => void,
+): Promise<void> {
   const corr = correlatePlottedPair(surprise, sp500);
+  const defaultDate = latestSeriesDate([...surprise, ...sp500, ...corr]);
 
   const layout = buildDualPanelLayout({
     yLeftTitle: 'CPI surprise (pp)',
     yRightTitle: SP500_AXIS_TITLE,
-    yaxis2Tickvals: indexTicksEvery500(sp500.map((p) => p.value)),
     recessionBands,
   });
 
-  plotDualPanelChart(
+  const [surprisePast, surpriseFuture] = createPastFutureTraces(surprise, {
+    name: 'CPI surprise (reported − consensus, pp)',
+    color: '#60a5fa',
+    width: 1.5,
+    yaxis: 'y',
+    mode: 'lines+markers',
+    marker: { size: 4, color: '#60a5fa' },
+    hovertemplate: HOVER_Y.pct2,
+  });
+  const [spPast, spFuture] = createPastFutureTraces(sp500, {
+    name: SP500_TRACE_NAME,
+    color: '#4ade80',
+    width: 1.5,
+    yaxis: 'y2',
+    hovertemplate: HOVER_Y.points0,
+  });
+  const [corrPast, corrFuture] = createPastFutureTraces(corr, {
+    name: '36m correlation',
+    color: '#fbbf24',
+    width: 1.5,
+    yaxis: 'y3',
+    xaxis: 'x2',
+    hovertemplate: HOVER_Y.pct2,
+  });
+
+  await plotDualPanelChart(
     el,
-    [
-      {
-        x: surprise.map((p) => formatDate(p.date)),
-        y: surprise.map((p) => p.value),
-        name: 'CPI surprise (reported − consensus, pp)',
-        type: 'scatter',
-        mode: 'lines+markers',
-        marker: { size: 4, color: '#60a5fa' },
-        line: { color: '#60a5fa', width: 1.5 },
-        yaxis: 'y',
-        hovertemplate: HOVER_Y.pct2,
-      },
-      {
-        x: sp500.map((p) => formatDate(p.date)),
-        y: sp500.map((p) => p.value),
-        name: SP500_TRACE_NAME,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: '#4ade80', width: 1.5 },
-        yaxis: 'y2',
-        hovertemplate: HOVER_Y.points0,
-      },
-      correlationTrace(corr),
-    ],
+    [surprisePast, surpriseFuture, spPast, spFuture, corrPast, corrFuture],
     layout,
+  );
+
+  const controller = createChartBacktestController({
+    el,
+    layout,
+    xrefs: ['x', 'x2'],
+    recessionBands,
+    series: [
+      { full: surprise, pastIndex: SURPRISE_PAST, futureIndex: SURPRISE_FUTURE },
+      { full: sp500, pastIndex: SP_PAST, futureIndex: SP_FUTURE },
+      { full: corr, pastIndex: CORR_PAST, futureIndex: CORR_FUTURE },
+    ],
+  });
+
+  registerChartBacktest(
+    el,
+    ['x', 'x2'],
+    SIDE_BY_SIDE_CORR.y,
+    controller.getBaseShapes,
+    defaultDate,
+    controller.update,
+    onPanelDate,
   );
 }
 

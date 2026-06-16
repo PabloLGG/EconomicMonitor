@@ -1,6 +1,6 @@
 import Plotly from 'plotly.js-dist-min';
 import type { PlotMouseEvent, ScatterData, Shape } from 'plotly.js';
-import { hoverLineShapes, hoverXValue } from './hoverShapes';
+import { hoverLineShapes, hoverXValue } from '../charts/hoverShapes';
 
 type ScatterTrace = Partial<ScatterData> & { x?: (string | number | Date)[]; y?: number[] };
 
@@ -18,6 +18,22 @@ type PlotlyFx = typeof Plotly & {
 };
 
 const plotlyFx = Plotly as PlotlyFx;
+
+export interface ChartBacktestHoverConfig {
+  el: HTMLElement;
+  xrefs: Array<NonNullable<Shape['xref']>>;
+  yDomain: [number, number];
+  getBaseShapes: () => Partial<Shape>[];
+  defaultDate: Date;
+  onDateChange: (date: Date) => void;
+  onPanelDate?: (date: Date | null) => void;
+}
+
+function parseHoverDate(x: string | number | Date): Date | null {
+  if (x instanceof Date) return x;
+  const d = new Date(String(x));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
 function xToMs(x: string | number | Date): number {
   if (x instanceof Date) return x.getTime();
@@ -64,46 +80,28 @@ function buildHoverPointsAtX(
   return points;
 }
 
-/** Vertical hover line on a single date axis. */
-export function attachHoverLine(
-  el: HTMLElement,
-  baseShapes: Partial<Shape>[],
-): void {
-  const xrefs: Array<NonNullable<Shape['xref']>> = ['x'];
-  const yDomain: [number, number] = [0, 1];
-  const root = el as PlotlyRoot;
+/** Per-chart hover: vertical cursor line, backtest update, and optional panel sync. */
+export function attachChartBacktestHover(config: ChartBacktestHoverConfig): void {
+  const root = config.el as PlotlyRoot;
+  const isDualPanel = config.xrefs.length > 1;
+  let hoverSyncing = false;
+  let lastMonthKey = '';
 
   const updateHoverLine = (x: string | number | null): void => {
+    const base = config.getBaseShapes();
     const shapes =
-      x == null ? baseShapes : [...baseShapes, ...hoverLineShapes(x, xrefs, yDomain)];
-    void Plotly.relayout(el, { shapes });
+      x == null ? base : [...base, ...hoverLineShapes(x, config.xrefs, config.yDomain)];
+    void Plotly.relayout(config.el, { shapes });
   };
 
-  root.on('plotly_hover', (event: PlotMouseEvent) => {
-    const x = event.points[0]?.x;
-    if (x == null) return;
-    updateHoverLine(hoverXValue(x));
-  });
-
-  root.on('plotly_unhover', () => {
-    updateHoverLine(null);
-  });
-}
-
-/** Synced vertical lines and unified hover across left + right date panels. */
-export function attachSyncedSubplotHover(
-  el: HTMLElement,
-  baseShapes: Partial<Shape>[],
-  yDomain: [number, number],
-): void {
-  const xrefs: Array<NonNullable<Shape['xref']>> = ['x', 'x2'];
-  const root = el as PlotlyRoot;
-  let hoverSyncing = false;
-
-  const updateHoverLine = (x: string | number | null): void => {
-    const shapes =
-      x == null ? baseShapes : [...baseShapes, ...hoverLineShapes(x, xrefs, yDomain)];
-    void Plotly.relayout(el, { shapes });
+  const applyDate = (date: Date, x: string | number | null, notifyPanel: boolean): void => {
+    const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+    if (key !== lastMonthKey) {
+      lastMonthKey = key;
+      config.onDateChange(date);
+      if (notifyPanel) config.onPanelDate?.(date);
+    }
+    updateHoverLine(x);
   };
 
   root.on('plotly_hover', (event: PlotMouseEvent) => {
@@ -111,19 +109,31 @@ export function attachSyncedSubplotHover(
     const x = event.points[0]?.x;
     if (x == null) return;
 
-    const hx = hoverXValue(x);
-    updateHoverLine(hx);
+    const date = parseHoverDate(x);
+    if (!date) return;
 
-    const allPoints = buildHoverPointsAtX(root, hx);
-    if (allPoints.length > event.points.length) {
-      hoverSyncing = true;
-      plotlyFx.Fx.hover(root, { points: allPoints });
-      hoverSyncing = false;
+    const hx = hoverXValue(x);
+
+    if (isDualPanel) {
+      const allPoints = buildHoverPointsAtX(root, hx);
+      if (allPoints.length > event.points.length) {
+        hoverSyncing = true;
+        plotlyFx.Fx.hover(root, { points: allPoints });
+        hoverSyncing = false;
+      }
     }
+
+    applyDate(date, hx, true);
   });
 
   root.on('plotly_unhover', () => {
+    lastMonthKey = '';
+    config.onDateChange(config.defaultDate);
+    config.onPanelDate?.(null);
     updateHoverLine(null);
     plotlyFx.Fx.unhover(root);
   });
+
+  config.onDateChange(config.defaultDate);
+  updateHoverLine(null);
 }

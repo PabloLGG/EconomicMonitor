@@ -103,3 +103,23 @@ npm run preview
 | NBER recessions | `USREC` |
 
 Chart 7 uses Cleveland Fed CPI nowcast when available; otherwise Michigan Survey inflation expectations (`MICH`) as consensus.
+
+## Recession ML model (charts 1, 2, 4)
+
+Charts 1, 2, and 4 use a **Temporal VAE + discrete hazard survival model** trained offline in Python. The browser loads `public/models/recession_v1.onnx` via ONNX Runtime Web and outputs:
+
+- Calibrated **recession probability (12 mo)**
+- **Predicted onset month** from the hazard curve
+- **Mean + band forecast** of 36m rolling correlation
+
+Retrain after refreshing data:
+
+```bash
+npm run fetch-data
+cd ml && python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m data.prepare_panel
+python -m train.train_all
+```
+
+See [`ml/README.md`](ml/README.md) for details.

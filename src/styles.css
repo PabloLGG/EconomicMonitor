@@ -26,9 +26,199 @@ body {
 }
 
 #app {
-  max-width: 1200px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1.5rem 300px 3rem 1rem;
+}
+
+.trailing-panel {
+  position: fixed;
+  right: 1rem;
+  top: 5rem;
+  width: 260px;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.trailing-panel-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.trailing-horizon-banner {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.75rem;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #fde68a;
+}
+
+.trailing-section {
+  margin-bottom: 1.25rem;
+}
+
+.trailing-section:last-child {
+  margin-bottom: 0;
+}
+
+.trailing-today {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.trailing-today-probability {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fbbf24;
+  font-variant-numeric: tabular-nums;
+}
+
+.trailing-today-caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.trailing-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.trailing-date {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.trailing-placeholder {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.trailing-predictions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trailing-prediction {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.trailing-pred-num {
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.trailing-pred-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.trailing-pred-label {
+  font-weight: 600;
+}
+
+.trailing-pred-probability {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.trailing-pred-date {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.trailing-pred-meta,
+.trailing-pred-window,
+.trailing-pred-actual {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.trailing-pred-actual {
+  color: #fca5a5;
+}
+
+.trailing-chart-values {
+  margin-bottom: 0.75rem;
+}
+
+.trailing-chart-values:last-child {
+  margin-bottom: 0;
+}
+
+.trailing-chart-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.trailing-series-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  margin-bottom: 0.2rem;
+}
+
+.trailing-series-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.trailing-series-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.trailing-series-val {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .site-header {
@@ -59,6 +249,170 @@ body {
 
 .status.error {
   color: var(--error);
+}
+
+.ml-explainer {
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.ml-explainer-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.ml-explainer-lead {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.ml-explainer-points {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  columns: 1;
+  column-gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .ml-explainer-points {
+    columns: 2;
+  }
+}
+
+.ml-explainer-points li {
+  margin-bottom: 0.5rem;
+}
+
+.ml-explainer-points li:last-child {
+  margin-bottom: 0;
+}
+
+.ml-explainer-points strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ml-explainer-note {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.recession-benchmark {
+  margin-bottom: 2rem;
+}
+
+.benchmark-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.benchmark-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.benchmark-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.benchmark-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.benchmark-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.benchmark-indicator {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.15rem 0.75rem;
+  align-items: baseline;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.benchmark-indicator-num {
+  font-weight: 600;
+  color: var(--muted);
+  grid-row: 1 / 3;
+  align-self: center;
+}
+
+.benchmark-indicator-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.benchmark-indicator-date {
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+
+.benchmark-indicator-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.benchmark-indicator-window {
+  grid-column: 2 / 4;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.benchmark-indicator.warning {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+}
+
+.benchmark-indicator.warning .benchmark-indicator-date {
+  color: #fca5a5;
+}
+
+.benchmark-indicator.forecast {
+  background: rgba(96, 165, 250, 0.08);
+  border-color: #60a5fa;
+}
+
+.benchmark-indicator.forecast .benchmark-indicator-date {
+  color: #93c5fd;
+}
+
+.benchmark-indicator.clear .benchmark-indicator-date {
+  color: var(--muted);
+}
+
+.benchmark-disclaimer {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .charts-grid {
@@ -119,6 +473,19 @@ body {
   color: var(--muted);
   max-width: 720px;
   margin-inline: auto;
+}
+
+@media (max-width: 1100px) {
+  .app-main {
+    padding-right: 1rem;
+  }
+
+  .trailing-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 0 1rem 2rem;
+  }
 }
 
 @media (max-width: 640px) {

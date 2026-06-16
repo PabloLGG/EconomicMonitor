@@ -5,3 +5,7 @@ dist
 .env
 .env.*
 public/data/economic-data.json
+ml/.venv/
+ml/data/artifacts/
+__pycache__/
+*.pyc

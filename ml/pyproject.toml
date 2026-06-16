@@ -1,0 +1,23 @@
+[project]
+name = "economic-monitor-ml"
+version = "1.0.0"
+description = "Generative recession forecasting for EconomicMonitor"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "pyarrow>=15.0",
+  "scikit-learn>=1.4",
+  "torch>=2.2",
+  "onnx>=1.16",
+  "onnxruntime>=1.17",
+  "requests>=2.31",
+]
+
+[project.scripts]
+prepare-panel = "data.prepare_panel:main"
+train-recession = "train.train_all:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["data*", "models*", "train*", "eval*", "export*", "calibrate*"]

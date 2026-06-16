@@ -3,6 +3,7 @@ import type { RecessionBand } from '../utils/align';
 import { formatDate } from '../api/fred';
 
 const RECESSION_FILL = 'rgba(248, 113, 113, 0.12)';
+const PREDICTED_RECESSION_FILL = 'rgba(251, 191, 36, 0.28)';
 
 export function recessionShapes(
   bands: RecessionBand[],
@@ -24,28 +25,35 @@ export function recessionShapes(
   );
 }
 
+export function predictedRecessionShapes(
+  bands: RecessionBand[],
+  xrefs: Array<NonNullable<Shape['xref']>> = ['x'],
+): Partial<Shape>[] {
+  return xrefs.flatMap((xref) =>
+    bands.map((band) => ({
+      type: 'rect' as const,
+      xref,
+      yref: 'paper' as const,
+      x0: formatDate(band.start),
+      x1: formatDate(band.end),
+      y0: 0,
+      y1: 1,
+      fillcolor: PREDICTED_RECESSION_FILL,
+      line: { color: '#fbbf24', width: 2, dash: 'dash' },
+      layer: 'below' as const,
+    })),
+  );
+}
+
 export interface DualAxisLayoutOptions {
   yLeftTitle: string;
   yRightTitle: string;
   recessionBands?: RecessionBand[];
+  predictedBands?: RecessionBand[];
   recessionXrefs?: Array<NonNullable<Shape['xref']>>;
   height?: number;
   yaxisRange?: [number, number];
   yaxis2Range?: [number, number];
-  yaxis2Tickvals?: number[];
-}
-
-/** Tick marks every 500 index points (500, 1,000, 1,500, …) up to series max. */
-export function indexTicksEvery500(values: number[]): number[] {
-  if (values.length === 0) {
-    return [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000];
-  }
-  const end = Math.ceil(Math.max(...values) / 500) * 500;
-  const ticks: number[] = [];
-  for (let t = 500; t <= end; t += 500) {
-    ticks.push(t);
-  }
-  return ticks;
 }
 
 /** Unit suffix for series reported in thousands. */
@@ -108,13 +116,15 @@ export function applyCorrelationSidePanel(
     autorange: false,
   };
 
-  layout.hovermode = 'x unified';
+  layout.hovermode = 'x';
 }
 
 export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> {
-  const shapes = options.recessionBands
-    ? recessionShapes(options.recessionBands, options.recessionXrefs)
-    : [];
+  const xrefs = options.recessionXrefs ?? ['x'];
+  const shapes: Partial<Shape>[] = [
+    ...(options.recessionBands ? recessionShapes(options.recessionBands, xrefs) : []),
+    ...(options.predictedBands ? predictedRecessionShapes(options.predictedBands, xrefs) : []),
+  ];
 
   return {
     paper_bgcolor: '#1a2332',
@@ -142,13 +152,6 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
       overlaying: 'y',
       side: 'right',
       gridcolor: 'transparent',
-      ...(options.yaxis2Tickvals?.length
-        ? {
-            tickmode: 'array' as const,
-            tickvals: options.yaxis2Tickvals,
-            ticktext: options.yaxis2Tickvals.map((v) => v.toLocaleString('en-US')),
-          }
-        : {}),
       ...(options.yaxis2Range
         ? { range: options.yaxis2Range, autorange: false }
         : {}),
@@ -159,7 +162,7 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
       x: 0,
       bgcolor: 'transparent',
     },
-    hovermode: 'x unified',
+    hovermode: 'x',
     shapes,
   };
 }
@@ -186,12 +189,15 @@ export function singleAxisLayout(
       gridcolor: '#2d3a4f',
       zerolinecolor: '#2d3a4f',
     },
-    hovermode: 'x unified',
+    hovermode: 'x',
     shapes: recessionBands ? recessionShapes(recessionBands) : [],
   };
 }
 
-/** Value-only hover labels; unified hover already shows the date once. */
+/** Plotly hover disabled — values shown in trailing panel. */
+export const HOVER_SKIP = 'skip' as const;
+
+/** Legacy hover templates (unused when hoverinfo is skip). */
 export const HOVER_Y = {
   pct2: '%{y:.2f}<extra></extra>',
   int0: '%{y:.0f}<extra></extra>',
