@@ -38,7 +38,7 @@ The GitHub Actions workflow builds on every push to `main` and daily at 06:00 UT
 
 ### Prerequisites
 
-Install **Node.js 20+** if you do not have it yet:
+Install **Node.js 24+** if you do not have it yet:
 
 ```bash
 brew install node
@@ -48,7 +48,7 @@ brew install node
 Verify:
 
 ```bash
-node -v   # should print v20.x or newer
+node -v   # should print v24.x or newer
 npm -v
 ```
 
