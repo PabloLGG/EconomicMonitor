@@ -9,26 +9,61 @@
     />
     <title>Economic Monitor</title>
     <link rel="icon" type="image/svg+xml" href="/EconomicMonitor/favicon.svg" />
-    <script type="module" crossorigin src="/EconomicMonitor/assets/index-BVuDrbgE.js"></script>
-    <link rel="stylesheet" crossorigin href="/EconomicMonitor/assets/index-C_anI8JI.css">
+    <script type="module" crossorigin src="/EconomicMonitor/assets/index-BXb3z15G.js"></script>
+    <link rel="stylesheet" crossorigin href="/EconomicMonitor/assets/index-CCROk_nW.css">
   </head>
   <body>
-    <div id="app">
-      <header class="site-header">
-        <h1>Economic Monitor</h1>
-        <p class="subtitle">
-          Live US macro indicators from FRED &amp; NBER · Data refreshes on each visit
-        </p>
-        <p id="status" class="status" aria-live="polite">Loading data…</p>
-      </header>
-      <main id="charts" class="charts-grid"></main>
-      <footer class="site-footer">
-        <p>
-          Sources: Federal Reserve Economic Data (FRED), National Bureau of Economic Research (NBER),
-          Bureau of Economic Analysis (BEA), Bureau of Labor Statistics (BLS),
-          Cleveland Fed Inflation Nowcast.
-        </p>
-      </footer>
+    <div id="app" class="app-shell">
+      <div class="app-main">
+        <header class="site-header">
+          <h1>Economic Monitor</h1>
+          <p class="subtitle">
+            Live US macro indicators from FRED &amp; NBER · Data refreshes on each visit
+          </p>
+          <p id="status" class="status" aria-live="polite">Loading data…</p>
+        </header>
+        <section class="ml-explainer" aria-labelledby="ml-explainer-title">
+          <h2 id="ml-explainer-title" class="ml-explainer-title">Recession probability model</h2>
+          <p class="ml-explainer-lead">
+            A machine-learning model runs in your browser to estimate how likely a US recession is
+            over the next 12 months, using the same macro relationships shown in charts 1, 2, and 4.
+          </p>
+          <ul class="ml-explainer-points">
+            <li>
+              <strong>Inputs:</strong> 60 months of rolling correlations (GDP vs S&amp;P 500, GDP vs
+              jobs, yield curve vs GDP), their recent changes and volatility, and the yield-curve
+              spread.
+            </li>
+            <li>
+              <strong>Method:</strong> A neural network trained on decades of monthly data outputs
+              month-by-month hazard scores, which are combined into one probability and calibrated
+              against NBER recession dates.
+            </li>
+            <li>
+              <strong>On the charts:</strong> Hover any date to see what the model would have
+              forecast from that month — correlation paths plus a recession window when hazard is
+              elevated. Dashed lines and bands on the latest view extend the correlation forecast
+              forward.
+            </li>
+          </ul>
+          <p class="ml-explainer-note">
+            Probabilities answer a binary question — “Does a recession start within 12 months?” —
+            so calibrated scores often sit near 0% or high values when signals are clear. Intermediate
+            percentages (for example 15–55%) appear in ambiguous transition periods, especially for
+            the current outlook rather than years before a recession that is already known in
+            hindsight.
+          </p>
+        </section>
+        <main id="charts" class="charts-grid"></main>
+        <footer class="site-footer">
+          <p>
+            Sources: Federal Reserve Economic Data (FRED), National Bureau of Economic Research (NBER),
+            Bureau of Economic Analysis (BEA), Bureau of Labor Statistics (BLS),
+            Cleveland Fed Inflation Nowcast.
+          </p>
+        </footer>
+      </div>
+      <aside id="trailing-panel" class="trailing-panel" aria-live="polite"></aside>
     </div>
   </body>
 </html>
