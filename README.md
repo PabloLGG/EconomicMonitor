@@ -1,98 +1,61 @@
 # Economic Monitor
 
-A GitHub Pages dashboard tracking US macroeconomic indicators with seven live-updating charts powered by the [FRED API](https://fred.stlouisfed.org/docs/api/fred/) and NBER recession data.
+**Live site:** [pablolgg.github.io/EconomicMonitor](https://pablolgg.github.io/EconomicMonitor/)
 
-**Live site:** [https://pablolgg.github.io/EconomicMonitor/](https://pablolgg.github.io/EconomicMonitor/)
+An interactive dashboard of US macroeconomic indicators — GDP, jobs, the yield curve, corporate profits, inflation surprises, and more — with NBER recession shading and a browser-based recession forecast model.
 
-## Charts
+**No signup or API key is required to use the live site.** Open the link above and the charts load automatically.
 
-1. Real GDP YoY vs S&P 500 (with NBER recession bands)
-2. Real GDP YoY vs Jobs Created (with rolling correlation inset)
-3. Fed Funds YoY change (shifted +12 months) vs Jobs Created
-4. 10Y–3M yield spread vs Real GDP YoY (with recession bands)
-5. 10Y–3M yield spread vs Jobless Claims
-6. Corporate profits per unit of real GVA (with 5-year inset)
-7. CPI surprise (reported − consensus) vs S&P 500
+---
 
-## One-time setup
+## What the site shows
 
-### 1. FRED API key
+Seven synchronized charts compare key macro series from the [FRED](https://fred.stlouisfed.org/) database and NBER recession dates. Hover any point to inspect values; charts share a linked time cursor so you can compare relationships across panels.
 
-Register a free key at [https://fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html).
+| # | Chart | What it compares |
+|---|-------|------------------|
+| 1 | GDP vs S&P 500 | Real GDP year-over-year growth and the S&P 500, with NBER recession bands |
+| 2 | GDP vs jobs | Real GDP YoY and monthly nonfarm payroll change, with a rolling-correlation inset |
+| 3 | Fed Funds vs jobs | Fed Funds rate change (shifted 12 months forward) vs payroll growth |
+| 4 | Yield curve vs GDP | 10Y–3M Treasury spread vs real GDP YoY |
+| 5 | Yield curve vs claims | 10Y–3M spread vs initial jobless claims |
+| 6 | Corporate profits | After-tax profits per unit of real GVA, with a 5-year detail inset |
+| 7 | CPI surprise vs stocks | Reported CPI YoY minus consensus expectations vs the S&P 500 |
 
-### 2. GitHub repository secret
+### Recession probability panel
 
-In your repo **Settings → Secrets and variables → Actions**, add:
+Charts **1, 2, and 4** include a generative ML overlay trained on decades of monthly data:
 
-| Name | Value |
-|------|-------|
-| `FRED_API_KEY` | Your FRED API key |
+- **Today** — calibrated probability that a US recession starts within the next **12 months**
+- **Hover backtest** — move the cursor over history to see what the model would have forecast from that month, including projected correlation paths and a shaded recession window when hazard is elevated
+- **Forward bands** — dashed lines and shaded bands on the latest view extend rolling-correlation forecasts using Monte Carlo roll-forward
 
-### 3. Enable GitHub Pages
+The model runs entirely in your browser via [ONNX Runtime Web](https://onnxruntime.ai/docs/get-started/with-javascript.html); no data is sent to a server for inference.
 
-In **Settings → Pages**, set source to **Deploy from a branch**, branch **`gh-pages`**, folder **`/ (root)`**.
+### How often data updates
 
-The GitHub Actions workflow builds on every push to `main` and daily at 06:00 UTC, then publishes to `gh-pages`.
+The published site loads a pre-built data bundle that GitHub Actions refreshes **daily at 06:00 UTC** and on every push to `main`. When you open the site, it fetches that bundle — you do not need to configure anything.
 
-## Local development
+---
 
-### Prerequisites
+## Do I need a FRED API key?
 
-Install **Node.js 24+** if you do not have it yet:
+| Situation | API key needed? |
+|-----------|-----------------|
+| **Using the live GitHub Pages site** | **No** — data is fetched server-side during deploy and shipped with the site |
+| **Running locally (`npm run dev`)** | **Yes** — dev mode calls the FRED API through a local proxy |
+| **Forking and deploying your own copy** | **Yes** — add `FRED_API_KEY` as a GitHub Actions secret (see below) |
 
-```bash
-brew install node
-# or: nvm install   (uses .nvmrc)
-```
+Register a free key at [fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html) only if you are developing locally or hosting your own deployment.
 
-Verify:
-
-```bash
-node -v   # should print v24.x or newer
-npm -v
-```
-
-### Setup
-
-```bash
-cd EconomicMonitor
-npm install
-cp .env.example .env.local
-```
-
-Edit `.env.local` and paste your real FRED API key (not the placeholder text):
-
-```
-VITE_FRED_API_KEY=abc123youractualkey
-```
-
-Get a free key at [https://fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html).
-
-### Run
-
-```bash
-npm run dev
-```
-
-Open **http://localhost:5173/** in your browser. (Local dev uses `/` as the base path; GitHub Pages uses `/EconomicMonitor/`.)
-
-FRED blocks direct browser requests (CORS). Local dev automatically proxies API calls through Vite — just run `npm run dev` and keep that terminal open.
-
-If charts fail to load, restart the dev server after editing `.env.local` so the new API key is picked up.
-
-## Build
-
-```bash
-VITE_FRED_API_KEY=your_key_here npm run build
-npm run preview
-```
+---
 
 ## Data sources
 
 | Series | FRED ID |
 |--------|---------|
 | Real GDP YoY | `A191RO1Q156NBEA` |
-| S&P 500 | `SP500` |
+| S&P 500 | `SP500` (+ Shiller monthly history for early years) |
 | Nonfarm payroll change | `PAYEMS` (`units=chg`) |
 | Fed Funds rate | `FEDFUNDS` |
 | 10Y–3M spread | `T10Y3M` |
@@ -102,17 +65,52 @@ npm run preview
 | Inflation expectations (consensus proxy) | `MICH` |
 | NBER recessions | `USREC` |
 
-Chart 7 uses Cleveland Fed CPI nowcast when available; otherwise Michigan Survey inflation expectations (`MICH`) as consensus.
+Chart 7 uses the Cleveland Fed CPI nowcast when available; otherwise Michigan Survey inflation expectations (`MICH`) as the consensus proxy.
 
-## Recession ML model (charts 1, 2, 4)
+---
 
-Charts 1, 2, and 4 use a **Temporal VAE + discrete hazard survival model** trained offline in Python. The browser loads `public/models/recession_v1.onnx` via ONNX Runtime Web and outputs:
+## For developers
 
-- Calibrated **recession probability (12 mo)**
-- **Predicted onset month** from the hazard curve
-- **Mean + band forecast** of 36m rolling correlation
+### Local development
 
-Retrain after refreshing data:
+**Prerequisites:** Node.js 24+ (`brew install node` or use `.nvmrc`).
+
+```bash
+git clone https://github.com/PabloLGG/EconomicMonitor.git
+cd EconomicMonitor
+npm install
+cp .env.example .env.local
+```
+
+Edit `.env.local` and set your FRED key:
+
+```
+VITE_FRED_API_KEY=your_key_here
+```
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173/](http://localhost:5173/). FRED blocks direct browser requests (CORS), so dev mode proxies API calls through Vite — keep the dev server running. Restart it after changing `.env.local`.
+
+### Build and preview
+
+```bash
+npm run fetch-data   # writes public/data/economic-data.json
+npm run build
+npm run preview
+```
+
+### Deploy your own fork
+
+1. Add repository secret **`FRED_API_KEY`** under **Settings → Secrets and variables → Actions**
+2. Enable **GitHub Pages** from the **`gh-pages`** branch (created automatically by the deploy workflow)
+3. Push to `main` — the workflow fetches FRED data, builds, and publishes
+
+### Retrain the recession model
+
+Charts 1, 2, and 4 use a Temporal VAE + discrete hazard model exported to `public/models/recession_v1.onnx`. After refreshing economic data:
 
 ```bash
 npm run fetch-data
@@ -122,4 +120,4 @@ python -m data.prepare_panel
 python -m train.train_all
 ```
 
-See [`ml/README.md`](ml/README.md) for details.
+See [`ml/README.md`](ml/README.md) for training and evaluation details.
