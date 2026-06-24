@@ -18,12 +18,12 @@ export const SIDE_BY_SIDE_CORR: SubplotLayout = {
   stacked: false,
 };
 
-/** Stacked: top = main series, bottom = correlation, 10% gap for x-axes. */
+/** Stacked: top = main series, bottom = correlation, 14% gap for x-axes. */
 export const STACKED_CORR: SubplotLayout = {
   leftX: [0.10, 0.94],
   rightX: [0.10, 0.94],
-  mainY: [0.56, 0.96],
-  corrY: [0.06, 0.46],
+  mainY: [0.58, 0.97],
+  corrY: [0.05, 0.43],
   corrRange: [-1, 1],
   stacked: true,
 };
@@ -33,8 +33,8 @@ const NARROW_PHONE_BREAKPOINT = 480;
 export const STACKED_CORR_NARROW: SubplotLayout = {
   leftX: [0.11, 0.94],
   rightX: [0.11, 0.94],
-  mainY: [0.57, 0.96],
-  corrY: [0.06, 0.45],
+  mainY: [0.59, 0.97],
+  corrY: [0.05, 0.42],
   corrRange: [-1, 1],
   stacked: true,
 };
@@ -61,7 +61,7 @@ export function getSubplotLayout(): SubplotLayout {
 export function chartHeight(): number {
   const layout = getSubplotLayout();
   if (layout.stacked) {
-    return isNarrowPhoneViewport() ? 480 : 500;
+    return isNarrowPhoneViewport() ? 520 : 540;
   }
   return 500;
 }
@@ -97,6 +97,14 @@ export function chartFontSize(): number {
 
 export function hoverYDomainForXref(
   xref: 'x' | 'x2',
+  layout: SubplotLayout = getSubplotLayout(),
+): [number, number] {
+  return xref === 'x2' ? layout.corrY : layout.mainY;
+}
+
+/** Paper y-bounds for recession/divider shapes so they stay inside each subplot. */
+export function shapeYDomainForXref(
+  xref: string,
   layout: SubplotLayout = getSubplotLayout(),
 ): [number, number] {
   return xref === 'x2' ? layout.corrY : layout.mainY;

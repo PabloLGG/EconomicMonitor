@@ -1,5 +1,5 @@
 import Plotly from 'plotly.js-dist-min';
-import type { Layout } from 'plotly.js';
+import type { Layout, Shape } from 'plotly.js';
 import { applyCorrelationSidePanel } from './common';
 import { isChartExpanded } from './chartExpand';
 import { chartExpandedHeight, chartHeight, getSubplotLayout } from './subplotLayout';
@@ -7,10 +7,13 @@ import { layoutToRelayoutSnapshot, syncInitialChartLayout } from './chartReset';
 
 const CORRELATION_WINDOW = 36;
 
+type ShapeFn = () => Partial<Shape>[];
+
 interface ResponsiveChart {
   el: HTMLElement;
   layout: Partial<Layout>;
   dualPanel: boolean;
+  getBaseShapes?: ShapeFn;
 }
 
 const charts: ResponsiveChart[] = [];
@@ -26,6 +29,11 @@ export function registerResponsiveChart(
     listenerAttached = true;
     window.addEventListener('resize', scheduleRelayout);
   }
+}
+
+export function setResponsiveChartShapes(el: HTMLElement, getBaseShapes: ShapeFn): void {
+  const entry = charts.find((c) => c.el === el);
+  if (entry) entry.getBaseShapes = getBaseShapes;
 }
 
 function scheduleRelayout(): void {
@@ -47,6 +55,13 @@ function applyLayoutForChart(entry: ResponsiveChart, height: number): void {
   syncInitialChartLayout(entry.el, entry.layout);
 }
 
+function relayoutPatch(entry: ResponsiveChart): Partial<Layout> {
+  return {
+    ...layoutToRelayoutSnapshot(entry.layout),
+    ...(entry.getBaseShapes ? { shapes: entry.getBaseShapes() } : {}),
+  };
+}
+
 export async function relayoutChartElement(
   el: HTMLElement,
   expanded: boolean,
@@ -56,7 +71,7 @@ export async function relayoutChartElement(
 
   const height = expanded ? chartExpandedHeight() : chartHeight();
   applyLayoutForChart(entry, height);
-  await Plotly.relayout(el, layoutToRelayoutSnapshot(entry.layout));
+  await Plotly.relayout(el, relayoutPatch(entry));
   Plotly.Plots.resize(el);
 }
 
@@ -64,8 +79,12 @@ function relayoutAll(): void {
   for (const entry of charts) {
     const height = heightForChart(entry.el);
     applyLayoutForChart(entry, height);
-    void Plotly.relayout(entry.el, layoutToRelayoutSnapshot(entry.layout)).then(() =>
+    void Plotly.relayout(entry.el, relayoutPatch(entry)).then(() =>
       Plotly.Plots.resize(entry.el),
     );
   }
+}
+
+export function syncAllResponsiveCharts(): void {
+  relayoutAll();
 }

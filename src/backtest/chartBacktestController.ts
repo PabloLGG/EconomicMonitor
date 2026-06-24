@@ -6,6 +6,7 @@ import type { RecessionBand } from '../utils/align';
 import type { ChartForecastId } from '../analysis/recessionTypes';
 import { predictionCache } from '../analysis/predictionCache';
 import { predictedRecessionShapes, recessionShapes } from '../charts/common';
+import { getSubplotLayout, shapeYDomainForXref } from '../charts/subplotLayout';
 import { signalMarkerTrace } from '../charts/dualPanelChart';
 import { pastFutureRestylePayload } from './seriesSplit';
 import { HOVER_SKIP } from '../charts/common';
@@ -44,17 +45,21 @@ function forecastDividerShapes(
   xrefs: Array<NonNullable<Shape['xref']>>,
 ): Partial<Shape>[] {
   const x = formatDate(date);
-  return xrefs.map((xref) => ({
-    type: 'line' as const,
-    xref,
-    yref: 'paper' as const,
-    x0: x,
-    x1: x,
-    y0: 0,
-    y1: 1,
-    line: { color: 'rgba(148, 163, 184, 0.55)', width: 1, dash: 'dot' },
-    layer: 'below' as const,
-  }));
+  const domains = getSubplotLayout();
+  return xrefs.map((xref) => {
+    const [y0, y1] = shapeYDomainForXref(xref, domains);
+    return {
+      type: 'line' as const,
+      xref,
+      yref: 'paper' as const,
+      x0: x,
+      x1: x,
+      y0,
+      y1,
+      line: { color: 'rgba(148, 163, 184, 0.55)', width: 1, dash: 'dot' },
+      layer: 'below' as const,
+    };
+  });
 }
 
 function emptyBandLowerTrace(): Partial<Data> {
@@ -108,17 +113,24 @@ export function buildForecastBandTraces(): Partial<Data>[] {
 export function createChartBacktestController(
   config: ChartBacktestConfig,
 ): { update: (date: Date) => void; getBaseShapes: () => Partial<Shape>[] } {
-  const recessionOnlyShapes = recessionShapes(config.recessionBands, config.xrefs);
   let predictedBand: RecessionBand | null = null;
   let lastBandAlpha = 0.22;
 
   function getBaseShapes(): Partial<Shape>[] {
-    const shapes: Partial<Shape>[] = [...recessionOnlyShapes];
+    const domains = getSubplotLayout();
+    const dualPanel = config.xrefs.includes('x2');
+    const yForShape = (xref: NonNullable<Shape['xref']>): [number, number] =>
+      dualPanel ? shapeYDomainForXref(xref, domains) : [0, 1];
+    const shapes: Partial<Shape>[] = recessionShapes(
+      config.recessionBands,
+      config.xrefs,
+      yForShape,
+    );
     if (config.forecastAnchorDate) {
       shapes.push(...forecastDividerShapes(config.forecastAnchorDate, config.xrefs));
     }
     if (predictedBand) {
-      shapes.push(...predictedRecessionShapes([predictedBand], config.xrefs));
+      shapes.push(...predictedRecessionShapes([predictedBand], config.xrefs, yForShape));
     }
     return shapes;
   }

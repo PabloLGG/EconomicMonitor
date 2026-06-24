@@ -2,49 +2,64 @@ import type { Layout, Shape } from 'plotly.js';
 import type { RecessionBand } from '../utils/align';
 import { formatDate } from '../api/fred';
 import type { SubplotLayout } from './subplotLayout';
-import { chartFontSize, chartHeight, chartMargins, isCoarsePointer, isMobileViewport } from './subplotLayout';
+import {
+  chartFontSize,
+  chartHeight,
+  chartMargins,
+  getSubplotLayout,
+  isCoarsePointer,
+  isMobileViewport,
+  shapeYDomainForXref,
+} from './subplotLayout';
+
+type ShapeXref = NonNullable<Shape['xref']>;
+type ShapeYDomainFn = (xref: ShapeXref) => [number, number];
 
 const RECESSION_FILL = 'rgba(248, 113, 113, 0.25)';
 const PREDICTED_RECESSION_FILL = 'rgba(251, 191, 36, 0.28)';
 
 export function recessionShapes(
   bands: RecessionBand[],
-  xrefs: Array<NonNullable<Shape['xref']>> = ['x'],
+  xrefs: Array<ShapeXref> = ['x'],
+  yDomainForXref: ShapeYDomainFn = () => [0, 1],
 ): Partial<Shape>[] {
-  return xrefs.flatMap((xref) =>
-    bands.map((band) => ({
+  return xrefs.flatMap((xref) => {
+    const [y0, y1] = yDomainForXref(xref);
+    return bands.map((band) => ({
       type: 'rect' as const,
       xref,
       yref: 'paper' as const,
       x0: formatDate(band.start),
       x1: formatDate(band.end),
-      y0: 0,
-      y1: 1,
+      y0,
+      y1,
       fillcolor: RECESSION_FILL,
       line: { width: 0 },
       layer: 'below' as const,
-    })),
-  );
+    }));
+  });
 }
 
 export function predictedRecessionShapes(
   bands: RecessionBand[],
-  xrefs: Array<NonNullable<Shape['xref']>> = ['x'],
+  xrefs: Array<ShapeXref> = ['x'],
+  yDomainForXref: ShapeYDomainFn = () => [0, 1],
 ): Partial<Shape>[] {
-  return xrefs.flatMap((xref) =>
-    bands.map((band) => ({
+  return xrefs.flatMap((xref) => {
+    const [y0, y1] = yDomainForXref(xref);
+    return bands.map((band) => ({
       type: 'rect' as const,
       xref,
       yref: 'paper' as const,
       x0: formatDate(band.start),
       x1: formatDate(band.end),
-      y0: 0,
-      y1: 1,
+      y0,
+      y1,
       fillcolor: PREDICTED_RECESSION_FILL,
       line: { color: '#fbbf24', width: 2, dash: 'dash' },
       layer: 'below' as const,
-    })),
-  );
+    }));
+  });
 }
 
 export interface DualAxisLayoutOptions {
@@ -163,9 +178,11 @@ export function plotDragMode(): false | 'zoom' {
 
 export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> {
   const xrefs = options.recessionXrefs ?? ['x'];
+  const domains = getSubplotLayout();
+  const yForShape = (xref: ShapeXref): [number, number] => shapeYDomainForXref(xref, domains);
   const shapes: Partial<Shape>[] = [
-    ...(options.recessionBands ? recessionShapes(options.recessionBands, xrefs) : []),
-    ...(options.predictedBands ? predictedRecessionShapes(options.predictedBands, xrefs) : []),
+    ...(options.recessionBands ? recessionShapes(options.recessionBands, xrefs, yForShape) : []),
+    ...(options.predictedBands ? predictedRecessionShapes(options.predictedBands, xrefs, yForShape) : []),
   ];
 
   return {

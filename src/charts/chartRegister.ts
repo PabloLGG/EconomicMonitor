@@ -1,7 +1,9 @@
 import type { Shape } from 'plotly.js';
+import Plotly from 'plotly.js-dist-min';
 import { attachChartBacktestHover } from '../backtest/chartBacktestHover';
 import { registerChartReset } from './chartReset';
 import { registerChartExpand } from './chartExpand';
+import { setResponsiveChartShapes } from './responsiveCharts';
 
 export function registerChartBacktest(
   el: HTMLElement,
@@ -20,10 +22,14 @@ export function registerChartBacktest(
     onPanelDate,
   });
 
+  setResponsiveChartShapes(el, getBaseShapes);
+
   registerChartReset(el, getBaseShapes, {
     resetBacktest: hover.resetBacktest,
     reattach: hover.bind,
   });
 
   registerChartExpand(el);
+
+  void Plotly.relayout(el, { shapes: getBaseShapes() }).then(() => Plotly.Plots.resize(el));
 }
