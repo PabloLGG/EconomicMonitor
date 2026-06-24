@@ -507,7 +507,7 @@ body {
 
 .chart-container {
   width: 100%;
-  min-height: 460px;
+  min-height: 500px;
   touch-action: pan-y;
 }
 
@@ -765,7 +765,7 @@ body.chart-expand-open {
   }
 
   .chart-container {
-    min-height: 0;
+    min-height: 480px;
   }
 
   .chart-footnote {

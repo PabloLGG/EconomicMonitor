@@ -57,12 +57,15 @@ export async function relayoutChartElement(
   const height = expanded ? chartExpandedHeight() : chartHeight();
   applyLayoutForChart(entry, height);
   await Plotly.relayout(el, layoutToRelayoutSnapshot(entry.layout));
+  Plotly.Plots.resize(el);
 }
 
 function relayoutAll(): void {
   for (const entry of charts) {
     const height = heightForChart(entry.el);
     applyLayoutForChart(entry, height);
-    void Plotly.relayout(entry.el, layoutToRelayoutSnapshot(entry.layout));
+    void Plotly.relayout(entry.el, layoutToRelayoutSnapshot(entry.layout)).then(() =>
+      Plotly.Plots.resize(entry.el),
+    );
   }
 }

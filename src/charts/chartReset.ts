@@ -43,17 +43,33 @@ export function layoutToRelayoutSnapshot(layout: Partial<Layout>): Partial<Layou
   for (const key of AXIS_KEYS) {
     const axis = layout[key];
     if (!axis) continue;
+
     const patch: Record<string, unknown> = {};
     if (axis.domain) patch.domain = [...axis.domain];
     if (axis.range) {
       patch.range = [...axis.range];
       patch.autorange = false;
+    } else if (axis.autorange !== undefined) {
+      patch.autorange = axis.autorange;
     } else {
       patch.autorange = true;
     }
+    if (axis.side) patch.side = axis.side;
+    if (axis.anchor) patch.anchor = axis.anchor;
+    if (axis.overlaying) patch.overlaying = axis.overlaying;
+    if (axis.showticklabels !== undefined) patch.showticklabels = axis.showticklabels;
+    if (axis.title !== undefined) {
+      patch.title =
+        typeof axis.title === 'object' && axis.title !== null
+          ? { ...axis.title }
+          : axis.title;
+    }
+
     (snap as Record<string, unknown>)[key] = patch;
   }
 
+  if (layout.margin) snap.margin = { ...layout.margin };
+  if (layout.legend) snap.legend = { ...layout.legend };
   if (layout.height != null) snap.height = layout.height;
   return snap;
 }

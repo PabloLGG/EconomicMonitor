@@ -5,33 +5,38 @@ export interface SubplotLayout {
   mainY: [number, number];
   corrY: [number, number];
   corrRange: [number, number];
+  stacked: boolean;
 }
 
-/** Side-by-side: left panel wider; gutter between panels for the left plot's right y-axis. */
+/** Side-by-side with a clear gutter so inner y-axes never overlap. */
 export const SIDE_BY_SIDE_CORR: SubplotLayout = {
-  leftX: [0.02, 0.53],
-  rightX: [0.60, 0.98],
-  mainY: [0.04, 0.96],
-  corrY: [0.04, 0.96],
+  leftX: [0.03, 0.50],
+  rightX: [0.58, 0.97],
+  mainY: [0.10, 0.94],
+  corrY: [0.10, 0.94],
   corrRange: [-1, 1],
+  stacked: false,
 };
 
+/** Stacked: top = main series, bottom = correlation, 10% gap for x-axes. */
 export const STACKED_CORR: SubplotLayout = {
-  leftX: [0.05, 0.97],
-  rightX: [0.05, 0.97],
-  mainY: [0.52, 0.97],
-  corrY: [0.04, 0.48],
+  leftX: [0.10, 0.94],
+  rightX: [0.10, 0.94],
+  mainY: [0.56, 0.96],
+  corrY: [0.06, 0.46],
   corrRange: [-1, 1],
+  stacked: true,
 };
 
 const NARROW_PHONE_BREAKPOINT = 480;
 
 export const STACKED_CORR_NARROW: SubplotLayout = {
-  leftX: [0.06, 0.97],
-  rightX: [0.06, 0.97],
-  mainY: [0.53, 0.97],
-  corrY: [0.04, 0.48],
+  leftX: [0.11, 0.94],
+  rightX: [0.11, 0.94],
+  mainY: [0.57, 0.96],
+  corrY: [0.06, 0.45],
   corrRange: [-1, 1],
+  stacked: true,
 };
 
 const MOBILE_BREAKPOINT = 768;
@@ -54,8 +59,11 @@ export function getSubplotLayout(): SubplotLayout {
 }
 
 export function chartHeight(): number {
-  if (isNarrowPhoneViewport()) return 360;
-  return isMobileViewport() ? 380 : 460;
+  const layout = getSubplotLayout();
+  if (layout.stacked) {
+    return isNarrowPhoneViewport() ? 480 : 500;
+  }
+  return 500;
 }
 
 export function chartExpandedHeight(): number {
@@ -64,15 +72,23 @@ export function chartExpandedHeight(): number {
     parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--trailing-panel-offset'),
     ) || 80;
-  const chrome = 88;
-  return Math.max(420, Math.round(window.innerHeight - panelOffset - chrome));
+  const chrome = 96;
+  return Math.max(460, Math.round(window.innerHeight - panelOffset - chrome));
 }
 
 export function chartMargins(dualPanel = false): { t: number; r: number; b: number; l: number } {
-  if (isNarrowPhoneViewport()) return { t: 26, r: 12, b: 36, l: 40 };
-  if (isMobileViewport()) return { t: 28, r: dualPanel ? 36 : 16, b: 38, l: 44 };
-  if (dualPanel) return { t: 26, r: 44, b: 36, l: 50 };
-  return { t: 26, r: 28, b: 36, l: 50 };
+  if (!dualPanel) {
+    if (isNarrowPhoneViewport()) return { t: 28, r: 14, b: 38, l: 44 };
+    if (isMobileViewport()) return { t: 28, r: 16, b: 38, l: 44 };
+    return { t: 28, r: 28, b: 38, l: 50 };
+  }
+
+  const stacked = getSubplotLayout().stacked;
+  if (stacked) {
+    if (isNarrowPhoneViewport()) return { t: 36, r: 18, b: 48, l: 50 };
+    return { t: 38, r: 22, b: 50, l: 52 };
+  }
+  return { t: 42, r: 48, b: 40, l: 52 };
 }
 
 export function chartFontSize(): number {

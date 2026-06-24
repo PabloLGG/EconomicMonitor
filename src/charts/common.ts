@@ -74,15 +74,30 @@ export function applyCorrelationSidePanel(
   domains: SubplotLayout,
   options: CorrelationPanelOptions,
 ): void {
-  layout.xaxis!.domain = domains.leftX;
-  layout.yaxis!.domain = domains.mainY;
-
+  const sideBySide = !domains.stacked;
   const margins = chartMargins(true);
+
   layout.margin = {
-    t: layout.margin?.t ?? margins.t,
+    t: margins.t,
     r: margins.r,
-    b: layout.margin?.b ?? margins.b,
-    l: layout.margin?.l ?? margins.l,
+    b: margins.b,
+    l: margins.l,
+  };
+
+  layout.xaxis = {
+    ...layout.xaxis,
+    domain: domains.leftX,
+    anchor: 'y',
+    type: 'date',
+    showticklabels: sideBySide,
+    gridcolor: '#2d3a4f',
+    zerolinecolor: '#2d3a4f',
+  };
+
+  layout.yaxis = {
+    ...layout.yaxis,
+    domain: domains.mainY,
+    anchor: 'x',
   };
 
   if (layout.yaxis2) {
@@ -92,21 +107,24 @@ export function applyCorrelationSidePanel(
         : { text: String(layout.yaxis2.title ?? '') };
     layout.yaxis2 = {
       ...layout.yaxis2,
+      anchor: 'x',
+      overlaying: 'y',
       side: 'right',
-      title: { ...y2Title, standoff: isMobileViewport() ? 4 : 12 },
+      showgrid: false,
+      title: { ...y2Title, standoff: sideBySide ? 12 : 6 },
     };
   }
-
-  const sideBySide = !isMobileViewport();
 
   layout.xaxis2 = {
     domain: domains.rightX,
     anchor: 'y3',
     type: 'date',
+    showticklabels: true,
     gridcolor: '#2d3a4f',
     zerolinecolor: '#2d3a4f',
     tickfont: { size: chartFontSize(), color: '#8b9cb3' },
   };
+
   layout.yaxis3 = {
     domain: domains.corrY,
     anchor: 'x2',
@@ -116,13 +134,24 @@ export function applyCorrelationSidePanel(
         ? `${options.windowMonths}m corr.`
         : `${options.windowMonths}m rolling corr.`,
       font: { size: chartFontSize(), color: '#fbbf24' },
-      standoff: isMobileViewport() ? 4 : 8,
+      standoff: sideBySide ? 8 : 4,
     },
     tickfont: { size: chartFontSize(), color: '#fbbf24' },
     gridcolor: '#2d3a4f',
     zerolinecolor: '#2d3a4f',
     range: domains.corrRange,
     autorange: false,
+  };
+
+  layout.legend = {
+    ...(layout.legend ?? {}),
+    orientation: 'h',
+    y: sideBySide ? 1.01 : 1.02,
+    x: 0,
+    xanchor: 'left',
+    yanchor: 'bottom',
+    bgcolor: 'transparent',
+    font: { size: chartFontSize() },
   };
 
   layout.hovermode = 'x';
@@ -172,8 +201,10 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
     },
     legend: {
       orientation: 'h',
-      y: isMobileViewport() ? 1.08 : 1.02,
+      y: 1.01,
       x: 0,
+      xanchor: 'left',
+      yanchor: 'bottom',
       bgcolor: 'transparent',
       font: { size: chartFontSize() },
     },
