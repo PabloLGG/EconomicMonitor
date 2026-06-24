@@ -11,7 +11,6 @@ import {
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
 const CLAIMS_AXIS: [number, number] = [0, 1000];
 
@@ -87,10 +86,10 @@ export async function renderYieldClaims(
   registerChartBacktest(
     el,
     ['x', 'x2'],
-    SIDE_BY_SIDE_CORR.y,
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }

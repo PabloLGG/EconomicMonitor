@@ -9,7 +9,8 @@ import {
   singleAxisLayout,
   type DualAxisLayoutOptions,
 } from './common';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
+import { registerResponsiveChart } from './responsiveCharts';
+import { getSubplotLayout } from './subplotLayout';
 
 export const CORRELATION_WINDOW = 36;
 export const CORRELATION_SUBTITLE = `${CORRELATION_WINDOW}-month rolling correlation (right panel).`;
@@ -30,7 +31,7 @@ export function buildDualPanelLayout(options: DualPanelLayoutOptions): Partial<L
     recessionXrefs: options.recessionBands || options.predictedBands ? xrefs : undefined,
   });
 
-  applyCorrelationSidePanel(layout, SIDE_BY_SIDE_CORR, {
+  applyCorrelationSidePanel(layout, getSubplotLayout(), {
     windowMonths: CORRELATION_WINDOW,
   });
 
@@ -131,9 +132,11 @@ export function plotDualPanelChart(
   traces: Partial<Data>[],
   layout: Partial<Layout>,
 ): Promise<void> {
+  registerResponsiveChart(el, layout);
   return Plotly.newPlot(el, traces, layout, {
     responsive: true,
     displayModeBar: false,
+    scrollZoom: !window.matchMedia('(pointer: coarse)').matches,
   }).then(() => undefined);
 }
 
@@ -145,6 +148,7 @@ export function plotSinglePanelChart(
   return Plotly.newPlot(el, traces, layout, {
     responsive: true,
     displayModeBar: false,
+    scrollZoom: !window.matchMedia('(pointer: coarse)').matches,
   }).then(() => undefined);
 }
 

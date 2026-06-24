@@ -17,7 +17,6 @@ import {
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
 const GDP_AXIS: [number, number] = [-5, 7.5];
 const JOBS_AXIS: [number, number] = [-1000, 1000];
@@ -127,10 +126,10 @@ export async function renderGdpJobs(
   registerChartBacktest(
     el,
     ['x', 'x2'],
-    SIDE_BY_SIDE_CORR.y,
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }

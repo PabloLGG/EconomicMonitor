@@ -17,7 +17,6 @@ import {
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
 const YIELD_PAST = 0;
 const YIELD_FUTURE = 1;
@@ -122,10 +121,10 @@ export async function renderYieldGdp(
   registerChartBacktest(
     el,
     ['x', 'x2'],
-    SIDE_BY_SIDE_CORR.y,
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }

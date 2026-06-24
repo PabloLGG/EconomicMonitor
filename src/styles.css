@@ -7,7 +7,7 @@
   --muted: #8b9cb3;
   --accent: #4ade80;
   --error: #f87171;
-  --recession: rgba(248, 113, 113, 0.12);
+  --recession: rgba(248, 113, 113, 0.25);
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
 }
@@ -173,6 +173,11 @@ body {
 .trailing-pred-actual {
   font-size: 0.72rem;
   color: var(--muted);
+}
+
+.trailing-pred-in-recession {
+  font-weight: 600;
+  color: #fca5a5;
 }
 
 .trailing-pred-actual {
@@ -428,6 +433,52 @@ body {
   padding: 1.25rem;
 }
 
+.chart-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.chart-section-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.chart-section-header h2 {
+  margin: 0 0 0.25rem;
+}
+
+.chart-section-header .chart-subtitle {
+  margin: 0 0 1rem;
+}
+
+.chart-reset-btn {
+  flex-shrink: 0;
+  padding: 0.35rem 0.75rem;
+  min-height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.chart-reset-btn:hover {
+  color: var(--text);
+  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.chart-reset-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
 .chart-section h2 {
   margin: 0 0 0.25rem;
   font-size: 1.1rem;
@@ -443,6 +494,7 @@ body {
 .chart-container {
   width: 100%;
   min-height: 420px;
+  touch-action: none;
 }
 
 .chart-error {
@@ -476,15 +528,101 @@ body {
 }
 
 @media (max-width: 1100px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
   .app-main {
-    padding-right: 1rem;
+    padding: 1.25rem 1rem 2rem;
   }
 
   .trailing-panel {
     position: static;
+    order: -1;
     width: auto;
     max-height: none;
-    margin: 0 1rem 2rem;
+    margin: 0 1rem 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .trailing-panel {
+    margin: 0 0.75rem 1rem;
+  }
+
+  .site-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+
+  .site-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .ml-explainer {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+  }
+
+  .ml-explainer-title {
+    font-size: 0.95rem;
+  }
+
+  .ml-explainer-lead {
+    font-size: 0.85rem;
+  }
+
+  .chart-section {
+    padding: 1rem;
+  }
+
+  .chart-section-header {
+    flex-wrap: wrap;
+  }
+
+  .chart-section-header h2 {
+    font-size: 1rem;
+  }
+
+  .chart-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .chart-reset-btn {
+    min-height: 2.75rem;
+    min-width: 4.5rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .chart-container {
+    min-height: 360px;
+  }
+
+  .trailing-today-probability {
+    font-size: 1.65rem;
+  }
+
+  .benchmark-indicator {
+    grid-template-columns: 1.75rem 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .benchmark-indicator-date {
+    grid-column: 2;
+    text-align: left;
+    font-size: 1rem;
+  }
+
+  .benchmark-indicator-window {
+    grid-column: 2;
   }
 }
 

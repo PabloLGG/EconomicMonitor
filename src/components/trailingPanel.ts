@@ -1,6 +1,10 @@
 import type { DataPoint } from '../api/fred';
 import { predictionCache } from '../analysis/predictionCache';
-import { PROBABILITY_HORIZON_MONTHS } from '../analysis/recessionTypes';
+import {
+  isCertainRecessionProbability,
+  isDateInRecessionBand,
+  PROBABILITY_HORIZON_MONTHS,
+} from '../analysis/recessionTypes';
 import type { RecessionBand } from '../utils/align';
 import {
   formatMonthYear,
@@ -140,10 +144,22 @@ export function createTrailingPanel(
         row.meta.textContent = '';
       }
 
-      if (pred?.predictedBand) {
+      const inPredictedRecession =
+        date &&
+        pred &&
+        isCertainRecessionProbability(pred.recessionProbability) &&
+        pred.predictedBand &&
+        isDateInRecessionBand(date, pred.predictedBand);
+
+      if (inPredictedRecession) {
+        row.window.textContent = 'we are in a predicted recession';
+        row.window.classList.add('trailing-pred-in-recession');
+      } else if (pred?.predictedBand) {
         row.window.textContent = `Window: ${formatShortDate(pred.predictedBand.start)} – ${formatShortDate(pred.predictedBand.end)}`;
+        row.window.classList.remove('trailing-pred-in-recession');
       } else {
         row.window.textContent = '';
+        row.window.classList.remove('trailing-pred-in-recession');
       }
 
       const actual = date && date < new Date() ? nextRecessionAfter(date) : null;

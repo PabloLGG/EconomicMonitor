@@ -10,7 +10,6 @@ import {
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
 const SURPRISE_PAST = 0;
 const SURPRISE_FUTURE = 1;
@@ -81,10 +80,10 @@ export async function renderCpiSurpriseSp500(
   registerChartBacktest(
     el,
     ['x', 'x2'],
-    SIDE_BY_SIDE_CORR.y,
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }

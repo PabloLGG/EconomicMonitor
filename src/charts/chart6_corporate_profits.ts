@@ -40,10 +40,10 @@ export async function renderCorporateProfits(
   registerChartBacktest(
     el,
     ['x'],
-    [0, 1],
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }

@@ -1,22 +1,24 @@
-import type { Shape } from 'plotly.js';
+import type { Layout, Shape } from 'plotly.js';
 import { attachChartBacktestHover } from '../backtest/chartBacktestHover';
+import { registerChartReset } from './chartReset';
 
 export function registerChartBacktest(
   el: HTMLElement,
   xrefs: Array<NonNullable<Shape['xref']>>,
-  yDomain: [number, number],
   getBaseShapes: () => Partial<Shape>[],
   defaultDate: Date,
   onDateChange: (date: Date) => void,
+  layout: Partial<Layout>,
   onPanelDate?: (date: Date | null) => void,
 ): void {
-  attachChartBacktestHover({
+  const hover = attachChartBacktestHover({
     el,
     xrefs,
-    yDomain,
     getBaseShapes,
     defaultDate,
     onDateChange,
     onPanelDate,
   });
+
+  registerChartReset(el, layout, hover.reset);
 }

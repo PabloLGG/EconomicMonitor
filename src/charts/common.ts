@@ -1,8 +1,10 @@
 import type { Layout, Shape } from 'plotly.js';
 import type { RecessionBand } from '../utils/align';
 import { formatDate } from '../api/fred';
+import type { SubplotLayout } from './subplotLayout';
+import { chartHeight, isCoarsePointer } from './subplotLayout';
 
-const RECESSION_FILL = 'rgba(248, 113, 113, 0.12)';
+const RECESSION_FILL = 'rgba(248, 113, 113, 0.25)';
 const PREDICTED_RECESSION_FILL = 'rgba(251, 191, 36, 0.28)';
 
 export function recessionShapes(
@@ -69,16 +71,11 @@ export interface CorrelationPanelOptions {
 /** Split layout: dual-axis time series (left) + rolling correlation (right). */
 export function applyCorrelationSidePanel(
   layout: Partial<Layout>,
-  domains: {
-    leftX: [number, number];
-    rightX: [number, number];
-    y: [number, number];
-    corrRange: [number, number];
-  },
+  domains: SubplotLayout,
   options: CorrelationPanelOptions,
 ): void {
   layout.xaxis!.domain = domains.leftX;
-  layout.yaxis!.domain = domains.y;
+  layout.yaxis!.domain = domains.mainY;
 
   layout.margin = {
     t: layout.margin?.t ?? 36,
@@ -103,7 +100,7 @@ export function applyCorrelationSidePanel(
     tickfont: { size: 10, color: '#8b9cb3' },
   };
   layout.yaxis3 = {
-    domain: domains.y,
+    domain: domains.corrY,
     anchor: 'x2',
     title: {
       text: `${options.windowMonths}m rolling corr.`,
@@ -119,6 +116,10 @@ export function applyCorrelationSidePanel(
   layout.hovermode = 'x';
 }
 
+export function plotDragMode(): false | 'zoom' {
+  return isCoarsePointer() ? false : 'zoom';
+}
+
 export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> {
   const xrefs = options.recessionXrefs ?? ['x'];
   const shapes: Partial<Shape>[] = [
@@ -130,8 +131,9 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
     paper_bgcolor: '#1a2332',
     plot_bgcolor: '#1a2332',
     font: { color: '#8b9cb3', size: 11 },
-    height: options.height ?? 420,
+    height: options.height ?? chartHeight(),
     margin: { t: 36, r: 60, b: 50, l: 60 },
+    dragmode: plotDragMode(),
     xaxis: {
       gridcolor: '#2d3a4f',
       zerolinecolor: '#2d3a4f',
@@ -170,7 +172,7 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
 export function singleAxisLayout(
   yTitle: string,
   recessionBands?: RecessionBand[],
-  height = 420,
+  height = chartHeight(),
 ): Partial<Layout> {
   return {
     paper_bgcolor: '#1a2332',
@@ -178,6 +180,7 @@ export function singleAxisLayout(
     font: { color: '#8b9cb3', size: 11 },
     height,
     margin: { t: 36, r: 40, b: 50, l: 60 },
+    dragmode: plotDragMode(),
     xaxis: {
       gridcolor: '#2d3a4f',
       zerolinecolor: '#2d3a4f',
@@ -225,8 +228,13 @@ export function renderChartSection(
   const section = document.createElement('section');
   section.className = 'chart-section';
   section.innerHTML = `
-    <h2>${title}</h2>
-    ${subtitle ? `<p class="chart-subtitle">${subtitle}</p>` : ''}
+    <div class="chart-section-header">
+      <div class="chart-section-titles">
+        <h2>${title}</h2>
+        ${subtitle ? `<p class="chart-subtitle">${subtitle}</p>` : ''}
+      </div>
+      <button type="button" class="chart-reset-btn" aria-label="Reset chart zoom">Reset</button>
+    </div>
     <div id="${id}" class="chart-container" role="img" aria-label="${title}"></div>
     <p class="chart-footnote">${footnote}</p>
   `;

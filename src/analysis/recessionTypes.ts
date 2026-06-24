@@ -145,6 +145,19 @@ export function formatRecessionProbability(p: number): string {
   return `${pct.toFixed(1)}%`;
 }
 
+export function isCertainRecessionProbability(p: number): boolean {
+  return formatRecessionProbability(p) === '100%';
+}
+
+function monthStartMs(d: Date): number {
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+}
+
+export function isDateInRecessionBand(date: Date, band: RecessionBand): boolean {
+  const ms = monthStartMs(date);
+  return ms >= monthStartMs(band.start) && ms <= monthStartMs(band.end);
+}
+
 export function applyCalibration(p: number, curve: CalibrationCurve): number {
   const { x_thresholds: xs, y_calibrated: ys } = curve;
   const x = Math.max(0, Math.min(1, p));

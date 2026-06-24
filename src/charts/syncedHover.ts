@@ -75,7 +75,9 @@ export function attachHoverLine(
 
   const updateHoverLine = (x: string | number | null): void => {
     const shapes =
-      x == null ? baseShapes : [...baseShapes, ...hoverLineShapes(x, xrefs, yDomain)];
+      x == null
+        ? baseShapes
+        : [...baseShapes, ...hoverLineShapes(x, xrefs, () => yDomain)];
     void Plotly.relayout(el, { shapes });
   };
 
@@ -102,7 +104,9 @@ export function attachSyncedSubplotHover(
 
   const updateHoverLine = (x: string | number | null): void => {
     const shapes =
-      x == null ? baseShapes : [...baseShapes, ...hoverLineShapes(x, xrefs, yDomain)];
+      x == null
+        ? baseShapes
+        : [...baseShapes, ...hoverLineShapes(x, xrefs, () => yDomain)];
     void Plotly.relayout(el, { shapes });
   };
 

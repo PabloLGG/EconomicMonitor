@@ -15,17 +15,20 @@ export function hoverXValue(x: string | number | Date): string {
 export function hoverLineShapes(
   x: string | number,
   xrefs: Array<NonNullable<Shape['xref']>>,
-  yDomain: [number, number],
+  yDomainForXref: (xref: NonNullable<Shape['xref']>) => [number, number],
 ): Partial<Shape>[] {
-  return xrefs.map((xref) => ({
-    type: 'line' as const,
-    xref,
-    yref: 'paper' as const,
-    x0: x,
-    x1: x,
-    y0: yDomain[0],
-    y1: yDomain[1],
-    line: HOVER_LINE,
-    layer: 'above' as const,
-  }));
+  return xrefs.map((xref) => {
+    const yDomain = yDomainForXref(xref);
+    return {
+      type: 'line' as const,
+      xref,
+      yref: 'paper' as const,
+      x0: x,
+      x1: x,
+      y0: yDomain[0],
+      y1: yDomain[1],
+      line: HOVER_LINE,
+      layer: 'above' as const,
+    };
+  });
 }

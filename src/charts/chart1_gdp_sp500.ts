@@ -17,7 +17,6 @@ import {
   CORRELATION_SUBTITLE,
   plotDualPanelChart,
 } from './dualPanelChart';
-import { SIDE_BY_SIDE_CORR } from './subplotLayout';
 
 const SIGNAL_FOOTNOTE =
   ' Hover a chart to step through history on that chart. Values appear in the chart tooltip.';
@@ -127,10 +126,10 @@ export async function renderGdpSp500(
   registerChartBacktest(
     el,
     ['x', 'x2'],
-    SIDE_BY_SIDE_CORR.y,
     controller.getBaseShapes,
     defaultDate,
     controller.update,
+    layout,
     onPanelDate,
   );
 }
