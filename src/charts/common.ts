@@ -246,7 +246,10 @@ export function renderChartSection(
         <h2>${title}</h2>
         ${subtitle ? `<p class="chart-subtitle">${subtitle}</p>` : ''}
       </div>
-      <button type="button" class="chart-reset-btn" aria-label="Reset chart zoom">Reset</button>
+      <div class="chart-section-actions">
+        <button type="button" class="chart-expand-btn" aria-label="Expand chart">Expand</button>
+        <button type="button" class="chart-reset-btn" aria-label="Reset chart zoom">Reset</button>
+      </div>
     </div>
     <div id="${id}" class="chart-container" role="img" aria-label="${title}"></div>
     <p class="chart-footnote">${footnote}</p>

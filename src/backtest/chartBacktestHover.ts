@@ -1,7 +1,8 @@
 import Plotly from 'plotly.js-dist-min';
 import type { ScatterData, Shape } from 'plotly.js';
 import { hoverLineShapes, hoverXValue } from '../charts/hoverShapes';
-import { getSubplotLayout, hoverYDomainForXref } from '../charts/subplotLayout';
+import { isChartExpanded } from '../charts/chartExpand';
+import { getSubplotLayout, hoverYDomainForXref, isCoarsePointer } from '../charts/subplotLayout';
 
 type ScatterTrace = Partial<ScatterData> & { x?: (string | number | Date)[]; y?: number[] };
 
@@ -27,6 +28,10 @@ export interface ChartBacktestHoverConfig {
   onDateChange: (date: Date) => void;
   onPanelDate?: (date: Date | null) => void;
 }
+
+const LONG_PRESS_MS = 300;
+const SCRUB_MIN_DX = 12;
+const SCRUB_AXIS_RATIO = 1.25;
 
 function parseHoverDate(x: string | number | Date): Date | null {
   if (x instanceof Date) return x;
@@ -114,13 +119,29 @@ export function attachChartBacktestHover(
   let lastMonthKey = '';
   let lastHoverXKey = '';
   let touchScrubbing = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let longPressTimer: number | null = null;
   let pointerAbort: AbortController | null = null;
 
   const root = (): PlotlyRoot => config.el as PlotlyRoot;
+  const scrollFriendlyTouch = (): boolean =>
+    isCoarsePointer() && !isChartExpanded(config.el);
 
   const yDomainForXref = (xref: NonNullable<Shape['xref']>): [number, number] => {
     if (config.xrefs.length === 1) return [0.06, 0.94];
     return hoverYDomainForXref(xref === 'x2' ? 'x2' : 'x');
+  };
+
+  const setScrubbingUi = (active: boolean): void => {
+    config.el.classList.toggle('chart-scrubbing', active);
+  };
+
+  const clearLongPressTimer = (): void => {
+    if (longPressTimer != null) {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
   };
 
   const updateHoverLine = (x: string | number | null): void => {
@@ -176,6 +197,12 @@ export function attachChartBacktestHover(
     updateHoverLine(null);
   };
 
+  const beginTouchScrub = (clientX: number, clientY: number): void => {
+    touchScrubbing = true;
+    setScrubbingUi(true);
+    handlePointer(clientX, clientY, true);
+  };
+
   const onMouseMove = (event: MouseEvent): void => {
     if (touchScrubbing) return;
     handlePointer(event.clientX, event.clientY, true);
@@ -188,22 +215,65 @@ export function attachChartBacktestHover(
 
   const onTouchStart = (event: TouchEvent): void => {
     if (event.touches.length !== 1) return;
-    touchScrubbing = true;
-    event.preventDefault();
+
     const touch = event.touches[0];
-    handlePointer(touch.clientX, touch.clientY, true);
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    if (!scrollFriendlyTouch()) {
+      event.preventDefault();
+      beginTouchScrub(touch.clientX, touch.clientY);
+      return;
+    }
+
+    clearLongPressTimer();
+    longPressTimer = window.setTimeout(() => {
+      longPressTimer = null;
+      beginTouchScrub(touchStartX, touchStartY);
+    }, LONG_PRESS_MS);
   };
 
   const onTouchMove = (event: TouchEvent): void => {
-    if (!touchScrubbing || event.touches.length !== 1) return;
-    event.preventDefault();
+    if (event.touches.length !== 1) return;
     const touch = event.touches[0];
-    handlePointer(touch.clientX, touch.clientY, true);
+
+    if (!scrollFriendlyTouch()) {
+      if (!touchScrubbing) return;
+      event.preventDefault();
+      handlePointer(touch.clientX, touch.clientY, true);
+      return;
+    }
+
+    if (touchScrubbing) {
+      event.preventDefault();
+      handlePointer(touch.clientX, touch.clientY, true);
+      return;
+    }
+
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+
+    if (Math.abs(dx) > SCRUB_MIN_DX && Math.abs(dx) > Math.abs(dy) * SCRUB_AXIS_RATIO) {
+      clearLongPressTimer();
+      beginTouchScrub(touch.clientX, touch.clientY);
+      event.preventDefault();
+      return;
+    }
+
+    if (
+      longPressTimer != null &&
+      Math.abs(dy) > 10 &&
+      Math.abs(dy) > Math.abs(dx)
+    ) {
+      clearLongPressTimer();
+    }
   };
 
   const endTouchScrub = (): void => {
+    clearLongPressTimer();
     if (!touchScrubbing) return;
     touchScrubbing = false;
+    setScrubbingUi(false);
     reset();
   };
 

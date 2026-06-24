@@ -1,6 +1,7 @@
 import type { Shape } from 'plotly.js';
 import { attachChartBacktestHover } from '../backtest/chartBacktestHover';
 import { registerChartReset } from './chartReset';
+import { registerChartExpand } from './chartExpand';
 
 export function registerChartBacktest(
   el: HTMLElement,
@@ -23,4 +24,6 @@ export function registerChartBacktest(
     resetBacktest: hover.resetBacktest,
     reattach: hover.bind,
   });
+
+  registerChartExpand(el);
 }

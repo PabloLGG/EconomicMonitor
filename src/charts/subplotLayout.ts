@@ -54,8 +54,18 @@ export function getSubplotLayout(): SubplotLayout {
 }
 
 export function chartHeight(): number {
-  if (isNarrowPhoneViewport()) return 520;
-  return isMobileViewport() ? 560 : 460;
+  if (isNarrowPhoneViewport()) return 360;
+  return isMobileViewport() ? 380 : 460;
+}
+
+export function chartExpandedHeight(): number {
+  if (typeof window === 'undefined') return 560;
+  const panelOffset =
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--trailing-panel-offset'),
+    ) || 80;
+  const chrome = 88;
+  return Math.max(420, Math.round(window.innerHeight - panelOffset - chrome));
 }
 
 export function chartMargins(dualPanel = false): { t: number; r: number; b: number; l: number } {

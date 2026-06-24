@@ -144,6 +144,7 @@ export function plotSinglePanelChart(
   traces: Partial<Data>[],
   layout: Partial<Layout>,
 ): Promise<void> {
+  registerResponsiveChart(el, layout, false);
   const config = plotConfig();
   storeInitialChartLayout(el, layout, config);
   return Plotly.newPlot(el, traces, layout, config).then(() => undefined);
