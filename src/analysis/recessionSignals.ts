@@ -3,6 +3,7 @@ import { forwardFillToDates, mergeMonthlyTimeline, type RecessionBand } from '..
 import { rollingCorrelation } from '../utils/correlation';
 import { CORRELATION_WINDOW } from '../charts/dualPanelChart';
 import type { RecessionForecast } from './recessionTypes';
+import { isElevatedRecessionProbability } from './recessionTypes';
 
 export interface ChartSignalAnalysis {
   correlation: DataPoint[];
@@ -131,7 +132,7 @@ function analyzeChart(
 ): ChartSignalAnalysis {
   const historicalSignals = highProbabilitySignals(correlation);
   const hitRate = computeHitRate(historicalSignals, recessionBands, LEAD_WINDOW_MONTHS);
-  const currentWarning = prediction.recessionProbability >= 0.5;
+  const currentWarning = isElevatedRecessionProbability(prediction.recessionProbability);
   return fromForecast(correlation, historicalSignals, hitRate, currentWarning, prediction);
 }
 

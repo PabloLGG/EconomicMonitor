@@ -129,7 +129,6 @@ export async function renderGdpJobs(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

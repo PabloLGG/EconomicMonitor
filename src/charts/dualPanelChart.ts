@@ -11,6 +11,7 @@ import {
 } from './common';
 import { registerResponsiveChart } from './responsiveCharts';
 import { getSubplotLayout } from './subplotLayout';
+import { plotConfig, storeInitialChartLayout } from './chartReset';
 
 export const CORRELATION_WINDOW = 36;
 export const CORRELATION_SUBTITLE = `${CORRELATION_WINDOW}-month rolling correlation (right panel).`;
@@ -133,11 +134,9 @@ export function plotDualPanelChart(
   layout: Partial<Layout>,
 ): Promise<void> {
   registerResponsiveChart(el, layout);
-  return Plotly.newPlot(el, traces, layout, {
-    responsive: true,
-    displayModeBar: false,
-    scrollZoom: !window.matchMedia('(pointer: coarse)').matches,
-  }).then(() => undefined);
+  const config = plotConfig();
+  storeInitialChartLayout(el, layout, config);
+  return Plotly.newPlot(el, traces, layout, config).then(() => undefined);
 }
 
 export function plotSinglePanelChart(
@@ -145,11 +144,9 @@ export function plotSinglePanelChart(
   traces: Partial<Data>[],
   layout: Partial<Layout>,
 ): Promise<void> {
-  return Plotly.newPlot(el, traces, layout, {
-    responsive: true,
-    displayModeBar: false,
-    scrollZoom: !window.matchMedia('(pointer: coarse)').matches,
-  }).then(() => undefined);
+  const config = plotConfig();
+  storeInitialChartLayout(el, layout, config);
+  return Plotly.newPlot(el, traces, layout, config).then(() => undefined);
 }
 
 export { singleAxisLayout };

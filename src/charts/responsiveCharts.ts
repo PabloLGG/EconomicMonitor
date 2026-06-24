@@ -2,7 +2,7 @@ import Plotly from 'plotly.js-dist-min';
 import type { Layout } from 'plotly.js';
 import { applyCorrelationSidePanel } from './common';
 import { chartHeight, getSubplotLayout } from './subplotLayout';
-import { layoutToRelayoutSnapshot } from './chartReset';
+import { layoutToRelayoutSnapshot, syncInitialChartLayout } from './chartReset';
 
 const CORRELATION_WINDOW = 36;
 
@@ -35,6 +35,7 @@ function relayoutAll(): void {
   for (const { el, layout } of charts) {
     applyCorrelationSidePanel(layout, domains, { windowMonths: CORRELATION_WINDOW });
     layout.height = height;
+    syncInitialChartLayout(el, layout);
     void Plotly.relayout(el, layoutToRelayoutSnapshot(layout));
   }
 }

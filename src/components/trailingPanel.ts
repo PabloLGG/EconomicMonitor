@@ -1,172 +1,108 @@
 import type { DataPoint } from '../api/fred';
 import { predictionCache } from '../analysis/predictionCache';
-import {
-  isCertainRecessionProbability,
-  isDateInRecessionBand,
-  PROBABILITY_HORIZON_MONTHS,
-} from '../analysis/recessionTypes';
-import type { RecessionBand } from '../utils/align';
-import {
-  formatMonthYear,
-  formatRecessionProbability,
-  formatShortDate,
-  type DynamicPredictionRow,
-} from './predictionRows';
+import { formatRecessionProbability } from '../analysis/recessionTypes';
+import { isCoarsePointer } from '../charts/subplotLayout';
+import { formatMonthYear } from './predictionRows';
 
 export interface TrailingPanelContext {
-  recessionBands: RecessionBand[];
   corr1: DataPoint[];
-  corr2: DataPoint[];
-  corr4: DataPoint[];
-  defaultPredictions: DynamicPredictionRow[];
   todayDate: Date;
   todayProbability: number;
+  todayPredictedStart: Date | null;
 }
 
-const CHART_IDS = ['chart1', 'chart2', 'chart4'] as const;
-const CHART_NUM: Record<(typeof CHART_IDS)[number], string> = {
-  chart1: '1',
-  chart2: '2',
-  chart4: '4',
-};
+function formatPredictedStart(start: Date | null | undefined): string {
+  return start ? formatMonthYear(start) : '—';
+}
+
+function labelHtml(full: string, short: string): string {
+  return `<span class="trailing-label-full">${full}</span><span class="trailing-label-short">${short}</span>`;
+}
+
+function syncPanelOffset(el: HTMLElement): void {
+  const height = el.getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--trailing-panel-offset', `${height}px`);
+}
 
 export function createTrailingPanel(
   el: HTMLElement,
   context: TrailingPanelContext,
 ): { update: (date: Date | null) => void } {
-  const corrMap = {
-    chart1: context.corr1,
-    chart2: context.corr2,
-    chart4: context.corr4,
-  };
+  const idleHint = isCoarsePointer() ? 'Touch a chart' : 'Hover a chart';
 
   el.innerHTML = `
     <div class="trailing-panel-inner">
-      <p class="trailing-horizon-banner">
-        All recession probabilities use a <strong>${PROBABILITY_HORIZON_MONTHS}-month</strong>
-        forecast window — the chance a recession begins within the next year from each date.
-      </p>
-      <section class="trailing-section trailing-today">
-        <h3 class="trailing-heading">Today</h3>
-        <p class="trailing-today-probability"></p>
-        <p class="trailing-today-caption"></p>
-      </section>
-      <section class="trailing-section">
-        <h3 class="trailing-heading">Selected date</h3>
-        <p class="trailing-date"></p>
-      </section>
-      <section class="trailing-section">
-        <h3 class="trailing-heading">Recession predictions</h3>
-        <div class="trailing-predictions"></div>
-      </section>
+      <div class="trailing-panel-body">
+        <section class="trailing-half trailing-today">
+          <p class="trailing-line-date">
+            <span class="trailing-label">${labelHtml('Today:', 'Today:')}</span>
+            <span class="trailing-date-value trailing-today-date"></span>
+          </p>
+          <div class="trailing-prediction-rows">
+            <p class="trailing-pred-row">
+              <span class="trailing-label">${labelHtml('Probability of recession:', 'Recession prob:')}</span>
+              <span class="trailing-stat trailing-probability trailing-today-probability"></span>
+            </p>
+            <p class="trailing-pred-row">
+              <span class="trailing-label">${labelHtml('Expected Recession Date:', 'Expected date:')}</span>
+              <span class="trailing-stat trailing-predicted-date trailing-today-predicted"></span>
+            </p>
+          </div>
+        </section>
+        <div class="trailing-divider" aria-hidden="true"></div>
+        <section class="trailing-half trailing-hover">
+          <p class="trailing-line-date">
+            <span class="trailing-label">${labelHtml('Selected Date:', 'Selected:')}</span>
+            <span class="trailing-date-value trailing-hover-date">${idleHint}</span>
+          </p>
+          <div class="trailing-prediction-rows">
+            <p class="trailing-pred-row">
+              <span class="trailing-label">${labelHtml('Probability of recession:', 'Recession prob:')}</span>
+              <span class="trailing-stat trailing-probability trailing-hover-probability">—</span>
+            </p>
+            <p class="trailing-pred-row">
+              <span class="trailing-label">${labelHtml('Expected Recession Date:', 'Expected date:')}</span>
+              <span class="trailing-stat trailing-predicted-date trailing-hover-predicted">—</span>
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
   `;
 
+  const todayDateEl = el.querySelector<HTMLElement>('.trailing-today-date')!;
   const todayProbabilityEl = el.querySelector<HTMLElement>('.trailing-today-probability')!;
-  const todayCaptionEl = el.querySelector<HTMLElement>('.trailing-today-caption')!;
-  const dateEl = el.querySelector<HTMLElement>('.trailing-date')!;
-  const predictionsEl = el.querySelector<HTMLElement>('.trailing-predictions')!;
+  const todayPredictedEl = el.querySelector<HTMLElement>('.trailing-today-predicted')!;
+  const hoverDateEl = el.querySelector<HTMLElement>('.trailing-hover-date')!;
+  const hoverProbabilityEl = el.querySelector<HTMLElement>('.trailing-hover-probability')!;
+  const hoverPredictedEl = el.querySelector<HTMLElement>('.trailing-hover-predicted')!;
 
+  todayDateEl.textContent = formatMonthYear(context.todayDate);
   todayProbabilityEl.textContent = formatRecessionProbability(context.todayProbability);
-  todayCaptionEl.textContent = `As of ${formatMonthYear(context.todayDate)}`;
+  todayPredictedEl.textContent = formatPredictedStart(context.todayPredictedStart);
 
-  const predRows = CHART_IDS.map((chartId) => {
-    const row = document.createElement('div');
-    row.className = 'trailing-prediction';
-    row.innerHTML = `
-      <span class="trailing-pred-num">${CHART_NUM[chartId]}.</span>
-      <div class="trailing-pred-body">
-        <span class="trailing-pred-label"></span>
-        <span class="trailing-pred-probability"></span>
-        <span class="trailing-pred-date"></span>
-        <span class="trailing-pred-meta"></span>
-        <span class="trailing-pred-window"></span>
-        <span class="trailing-pred-actual"></span>
-      </div>
-    `;
-    predictionsEl.appendChild(row);
-    return {
-      chartId,
-      label: row.querySelector<HTMLElement>('.trailing-pred-label')!,
-      probability: row.querySelector<HTMLElement>('.trailing-pred-probability')!,
-      date: row.querySelector<HTMLElement>('.trailing-pred-date')!,
-      meta: row.querySelector<HTMLElement>('.trailing-pred-meta')!,
-      window: row.querySelector<HTMLElement>('.trailing-pred-window')!,
-      actual: row.querySelector<HTMLElement>('.trailing-pred-actual')!,
-    };
-  });
+  const resizeObserver = new ResizeObserver(() => syncPanelOffset(el));
+  resizeObserver.observe(el);
+  syncPanelOffset(el);
 
   let lastMonthKey = '';
 
-  async function dynamicRows(date: Date | null): Promise<DynamicPredictionRow[]> {
-    if (!date) return context.defaultPredictions;
-
-    const rows = await Promise.all(
-      CHART_IDS.map(async (chartId) => {
-        const def = context.defaultPredictions.find((r) => r.chartId === chartId);
-        const prediction = await predictionCache.get(chartId, corrMap[chartId], date);
-        return {
-          chartId,
-          label: def?.label ?? chartId,
-          prediction,
-        };
-      }),
-    );
-    return rows;
-  }
-
-  function nextRecessionAfter(date: Date): RecessionBand | null {
-    return context.recessionBands.find((b) => b.start > date) ?? null;
-  }
-
-  async function renderRows(date: Date | null): Promise<void> {
-    const rows = await dynamicRows(date);
-    for (let i = 0; i < predRows.length; i++) {
-      const row = predRows[i];
-      const data = rows[i];
-      const pred = data.prediction;
-
-      row.label.textContent = data.label;
-
-      if (pred) {
-        row.probability.textContent = `Recession probability: ${formatRecessionProbability(pred.recessionProbability)}`;
-      } else {
-        row.probability.textContent = '';
-      }
-
-      row.date.textContent = pred?.predictedStart
-        ? formatMonthYear(pred.predictedStart)
-        : 'No forecast';
-
-      if (pred && pred.scenarioCount > 0) {
-        row.meta.textContent = 'Generative hazard model';
-      } else {
-        row.meta.textContent = '';
-      }
-
-      const inPredictedRecession =
-        date &&
-        pred &&
-        isCertainRecessionProbability(pred.recessionProbability) &&
-        pred.predictedBand &&
-        isDateInRecessionBand(date, pred.predictedBand);
-
-      if (inPredictedRecession) {
-        row.window.textContent = 'we are in a predicted recession';
-        row.window.classList.add('trailing-pred-in-recession');
-      } else if (pred?.predictedBand) {
-        row.window.textContent = `Window: ${formatShortDate(pred.predictedBand.start)} – ${formatShortDate(pred.predictedBand.end)}`;
-        row.window.classList.remove('trailing-pred-in-recession');
-      } else {
-        row.window.textContent = '';
-        row.window.classList.remove('trailing-pred-in-recession');
-      }
-
-      const actual = date && date < new Date() ? nextRecessionAfter(date) : null;
-      row.actual.textContent = actual
-        ? `Actual NBER: ${formatShortDate(actual.start)}`
-        : '';
+  async function renderHover(date: Date | null): Promise<void> {
+    if (!date) {
+      hoverDateEl.textContent = idleHint;
+      hoverDateEl.classList.add('trailing-date-idle');
+      hoverProbabilityEl.textContent = '—';
+      hoverPredictedEl.textContent = '—';
+      return;
     }
+
+    hoverDateEl.textContent = formatMonthYear(date);
+    hoverDateEl.classList.remove('trailing-date-idle');
+    const prediction = await predictionCache.get('chart1', context.corr1, date);
+    hoverProbabilityEl.textContent = prediction
+      ? formatRecessionProbability(prediction.recessionProbability)
+      : '—';
+    hoverPredictedEl.textContent = formatPredictedStart(prediction?.predictedStart);
   }
 
   function update(date: Date | null): void {
@@ -175,9 +111,7 @@ export function createTrailingPanel(
       : 'default';
     if (monthKey === lastMonthKey) return;
     lastMonthKey = monthKey;
-
-    dateEl.textContent = date ? formatMonthYear(date) : 'Hover a chart';
-    void renderRows(date);
+    void renderHover(date);
   }
 
   update(null);

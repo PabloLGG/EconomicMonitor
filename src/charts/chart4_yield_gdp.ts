@@ -124,7 +124,6 @@ export async function renderYieldGdp(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

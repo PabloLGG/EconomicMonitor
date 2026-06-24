@@ -149,17 +149,10 @@ async function init(): Promise<void> {
     );
 
     const trailingPanel = createTrailingPanel(trailingPanelEl, {
-      recessionBands,
       corr1: analysis.chart1.correlation,
-      corr2: analysis.chart2.correlation,
-      corr4: analysis.chart4.correlation,
-      defaultPredictions: [
-        { chartId: 'chart1', label: 'GDP & S&P 500', prediction: pred1 },
-        { chartId: 'chart2', label: 'GDP & jobs', prediction: pred2 },
-        { chartId: 'chart4', label: 'Yield & GDP', prediction: pred4 },
-      ],
       todayDate: predictor.panel[predictor.panel.length - 1]?.date ?? new Date(),
       todayProbability: pred1.recessionProbability,
+      todayPredictedStart: pred1.predictedStart,
     });
 
     const onPanelDate = trailingPanel.update;

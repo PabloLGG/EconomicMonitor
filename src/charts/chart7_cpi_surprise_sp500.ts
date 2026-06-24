@@ -83,7 +83,6 @@ export async function renderCpiSurpriseSp500(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

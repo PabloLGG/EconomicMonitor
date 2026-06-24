@@ -2,7 +2,7 @@ import type { Layout, Shape } from 'plotly.js';
 import type { RecessionBand } from '../utils/align';
 import { formatDate } from '../api/fred';
 import type { SubplotLayout } from './subplotLayout';
-import { chartHeight, isCoarsePointer } from './subplotLayout';
+import { chartFontSize, chartHeight, chartMargins, isCoarsePointer, isMobileViewport } from './subplotLayout';
 
 const RECESSION_FILL = 'rgba(248, 113, 113, 0.25)';
 const PREDICTED_RECESSION_FILL = 'rgba(251, 191, 36, 0.28)';
@@ -77,19 +77,27 @@ export function applyCorrelationSidePanel(
   layout.xaxis!.domain = domains.leftX;
   layout.yaxis!.domain = domains.mainY;
 
+  const margins = chartMargins(true);
   layout.margin = {
-    t: layout.margin?.t ?? 36,
-    r: 36,
-    b: layout.margin?.b ?? 50,
-    l: layout.margin?.l ?? 60,
+    t: layout.margin?.t ?? margins.t,
+    r: margins.r,
+    b: layout.margin?.b ?? margins.b,
+    l: layout.margin?.l ?? margins.l,
   };
 
-  if (layout.yaxis2 && typeof layout.yaxis2.title === 'object') {
+  if (layout.yaxis2) {
+    const y2Title =
+      typeof layout.yaxis2.title === 'object'
+        ? layout.yaxis2.title
+        : { text: String(layout.yaxis2.title ?? '') };
     layout.yaxis2 = {
       ...layout.yaxis2,
-      title: { ...layout.yaxis2.title, standoff: 4 },
+      side: 'right',
+      title: { ...y2Title, standoff: isMobileViewport() ? 4 : 12 },
     };
   }
+
+  const sideBySide = !isMobileViewport();
 
   layout.xaxis2 = {
     domain: domains.rightX,
@@ -97,16 +105,20 @@ export function applyCorrelationSidePanel(
     type: 'date',
     gridcolor: '#2d3a4f',
     zerolinecolor: '#2d3a4f',
-    tickfont: { size: 10, color: '#8b9cb3' },
+    tickfont: { size: chartFontSize(), color: '#8b9cb3' },
   };
   layout.yaxis3 = {
     domain: domains.corrY,
     anchor: 'x2',
+    side: sideBySide ? 'right' : 'left',
     title: {
-      text: `${options.windowMonths}m rolling corr.`,
-      font: { size: 10, color: '#fbbf24' },
+      text: isMobileViewport()
+        ? `${options.windowMonths}m corr.`
+        : `${options.windowMonths}m rolling corr.`,
+      font: { size: chartFontSize(), color: '#fbbf24' },
+      standoff: isMobileViewport() ? 4 : 8,
     },
-    tickfont: { size: 10, color: '#fbbf24' },
+    tickfont: { size: chartFontSize(), color: '#fbbf24' },
     gridcolor: '#2d3a4f',
     zerolinecolor: '#2d3a4f',
     range: domains.corrRange,
@@ -130,9 +142,9 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
   return {
     paper_bgcolor: '#1a2332',
     plot_bgcolor: '#1a2332',
-    font: { color: '#8b9cb3', size: 11 },
+    font: { color: '#8b9cb3', size: chartFontSize() },
     height: options.height ?? chartHeight(),
-    margin: { t: 36, r: 60, b: 50, l: 60 },
+    margin: chartMargins(),
     dragmode: plotDragMode(),
     xaxis: {
       gridcolor: '#2d3a4f',
@@ -160,9 +172,10 @@ export function dualAxisLayout(options: DualAxisLayoutOptions): Partial<Layout> 
     },
     legend: {
       orientation: 'h',
-      y: 1.04,
+      y: isMobileViewport() ? 1.08 : 1.02,
       x: 0,
       bgcolor: 'transparent',
+      font: { size: chartFontSize() },
     },
     hovermode: 'x',
     shapes,
@@ -177,9 +190,9 @@ export function singleAxisLayout(
   return {
     paper_bgcolor: '#1a2332',
     plot_bgcolor: '#1a2332',
-    font: { color: '#8b9cb3', size: 11 },
+    font: { color: '#8b9cb3', size: chartFontSize() },
     height,
-    margin: { t: 36, r: 40, b: 50, l: 60 },
+    margin: chartMargins(),
     dragmode: plotDragMode(),
     xaxis: {
       gridcolor: '#2d3a4f',

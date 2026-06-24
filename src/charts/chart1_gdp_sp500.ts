@@ -129,7 +129,6 @@ export async function renderGdpSp500(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

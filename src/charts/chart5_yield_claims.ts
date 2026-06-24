@@ -89,7 +89,6 @@ export async function renderYieldClaims(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

@@ -19,6 +19,7 @@ import {
   emptyForecast,
   FORECAST_MONTHS,
   hazardsToProbability,
+  isElevatedRecessionProbability,
   medianOnsetFromHazards,
   probabilityHorizonMonths,
   type ChartForecastId,
@@ -208,7 +209,9 @@ function buildForecastFromBundle(
 
   return {
     predictedStart,
-    predictedBand,
+    predictedBand: isElevatedRecessionProbability(recessionProbability)
+      ? predictedBand
+      : null,
     ...paths,
     forecastScenarios: [],
     vertexDates: predictedStart ? [predictedStart] : [],

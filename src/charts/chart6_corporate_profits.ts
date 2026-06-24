@@ -43,7 +43,6 @@ export async function renderCorporateProfits(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

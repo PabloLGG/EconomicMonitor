@@ -4,6 +4,7 @@ import type { RecessionBand } from '../utils/align';
 export const FORECAST_MONTHS = 120;
 export const FORWARD_HORIZON_MONTHS = 60;
 export const PROBABILITY_HORIZON_MONTHS = 12;
+export const RECESSION_WARNING_THRESHOLD = 0.5;
 export const HORIZON_PROB_MONTHS = [12, 24, 36, 48, 60] as const;
 export type HorizonProbMonths = (typeof HORIZON_PROB_MONTHS)[number];
 
@@ -143,6 +144,10 @@ export function formatRecessionProbability(p: number): string {
   if (pct < 0.05) return '<0.1%';
   if (pct >= 99.95) return '>99.9%';
   return `${pct.toFixed(1)}%`;
+}
+
+export function isElevatedRecessionProbability(p: number): boolean {
+  return p >= RECESSION_WARNING_THRESHOLD;
 }
 
 export function isCertainRecessionProbability(p: number): boolean {

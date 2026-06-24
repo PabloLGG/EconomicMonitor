@@ -87,7 +87,6 @@ export async function renderFedFundsJobs(
     controller.getBaseShapes,
     defaultDate,
     controller.update,
-    layout,
     onPanelDate,
   );
 }

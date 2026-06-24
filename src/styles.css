@@ -8,6 +8,7 @@
   --accent: #4ade80;
   --error: #f87171;
   --recession: rgba(248, 113, 113, 0.25);
+  --trailing-panel-offset: 4.75rem;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
 }
@@ -23,6 +24,8 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 #app {
@@ -41,147 +44,126 @@ body {
   min-width: 0;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.5rem 300px 3rem 1rem;
+  padding:
+    max(1rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    calc(var(--trailing-panel-offset) + env(safe-area-inset-bottom, 0px) + 0.5rem)
+    max(1rem, env(safe-area-inset-left, 0px));
 }
 
 .trailing-panel {
   position: fixed;
-  right: 1rem;
-  top: 5rem;
-  width: 260px;
-  max-height: calc(100vh - 6rem);
-  overflow-y: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 20;
+  height: 10vh;
+  min-height: 4.75rem;
+  padding: 0 max(0.75rem, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px)
+    max(0.75rem, env(safe-area-inset-left, 0px));
 }
 
 .trailing-panel-inner {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
+  border-top: 1px solid var(--border);
+  height: 100%;
+  padding: 0.4rem 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.3);
 }
 
-.trailing-horizon-banner {
-  margin: 0 0 1rem;
-  padding: 0.65rem 0.75rem;
-  background: rgba(251, 191, 36, 0.08);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  border-radius: 8px;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: #fde68a;
+.trailing-panel-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 100%;
+  gap: 0 1rem;
 }
 
-.trailing-section {
-  margin-bottom: 1.25rem;
+.trailing-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0.2rem 0;
 }
 
-.trailing-section:last-child {
-  margin-bottom: 0;
-}
-
-.trailing-today {
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.trailing-today-probability {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #fbbf24;
-  font-variant-numeric: tabular-nums;
-}
-
-.trailing-today-caption {
-  margin: 0.35rem 0 0;
-  font-size: 0.72rem;
-  color: var(--muted);
-  line-height: 1.4;
-}
-
-.trailing-heading {
-  margin: 0 0 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-.trailing-date {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.trailing-placeholder {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.trailing-predictions {
+.trailing-half {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.trailing-prediction {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.trailing-pred-num {
-  font-weight: 600;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.trailing-pred-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   min-width: 0;
+  gap: 0.2rem;
 }
 
-.trailing-pred-label {
+.trailing-label {
+  font-size: 0.62rem;
   font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-.trailing-pred-probability {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fbbf24;
+.trailing-label-short {
+  display: none;
 }
 
-.trailing-pred-date {
-  font-size: 0.95rem;
+.trailing-line-date {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  line-height: 1.15;
+}
+
+.trailing-date-value {
+  font-size: clamp(0.95rem, 3.5vh, 1.25rem);
   font-weight: 700;
-  color: #93c5fd;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  white-space: nowrap;
 }
 
-.trailing-pred-meta,
-.trailing-pred-window,
-.trailing-pred-actual {
-  font-size: 0.72rem;
+.trailing-date-idle {
+  font-size: clamp(0.8rem, 2.8vh, 0.95rem);
+  font-weight: 600;
   color: var(--muted);
 }
 
-.trailing-pred-in-recession {
-  font-weight: 600;
-  color: #fca5a5;
+.trailing-prediction-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 100%;
 }
 
-.trailing-pred-actual {
-  color: #fca5a5;
+.trailing-pred-row {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  line-height: 1.15;
+}
+
+.trailing-stat {
+  font-size: clamp(0.9rem, 3.2vh, 1.15rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.trailing-probability {
+  color: #fbbf24;
+}
+
+.trailing-predicted-date {
+  color: #93c5fd;
 }
 
 .trailing-chart-values {
@@ -493,7 +475,7 @@ body {
 
 .chart-container {
   width: 100%;
-  min-height: 420px;
+  min-height: 460px;
   touch-action: none;
 }
 
@@ -528,30 +510,70 @@ body {
 }
 
 @media (max-width: 1100px) {
-  .app-shell {
-    flex-direction: column;
-  }
-
   .app-main {
-    padding: 1.25rem 1rem 2rem;
-  }
-
-  .trailing-panel {
-    position: static;
-    order: -1;
-    width: auto;
-    max-height: none;
-    margin: 0 1rem 1.25rem;
+    padding-top: 1.25rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 }
 
 @media (max-width: 768px) {
   .app-main {
-    padding: 1rem 0.75rem 2rem;
+    padding-top: 1rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
   }
 
   .trailing-panel {
-    margin: 0 0.75rem 1rem;
+    height: auto;
+    max-height: 40vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .trailing-panel-inner {
+    padding: 0.45rem 0.65rem;
+  }
+
+  .trailing-panel-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0.35rem 0;
+    height: auto;
+  }
+
+  .trailing-divider {
+    width: 100%;
+    height: 1px;
+    margin: 0.1rem 0;
+  }
+
+  .trailing-half {
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .trailing-line-date,
+  .trailing-pred-row {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .trailing-label-full {
+    display: none;
+  }
+
+  .trailing-label-short {
+    display: inline;
+  }
+
+  .trailing-label {
+    flex-shrink: 0;
+  }
+
+  .trailing-date-value,
+  .trailing-stat {
+    text-align: right;
   }
 
   .site-header {
@@ -580,20 +602,37 @@ body {
     font-size: 0.85rem;
   }
 
+  .ml-explainer-points {
+    font-size: 0.8rem;
+    padding-left: 1rem;
+  }
+
+  .ml-explainer-note {
+    font-size: 0.74rem;
+  }
+
+  .charts-grid {
+    gap: 1.5rem;
+  }
+
   .chart-section {
-    padding: 1rem;
+    padding: 0.85rem;
+    border-radius: 8px;
   }
 
   .chart-section-header {
     flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .chart-section-header h2 {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.3;
   }
 
   .chart-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
+    margin-bottom: 0.75rem;
   }
 
   .chart-reset-btn {
@@ -603,11 +642,22 @@ body {
   }
 
   .chart-container {
-    min-height: 360px;
+    min-height: 0;
   }
 
-  .trailing-today-probability {
-    font-size: 1.65rem;
+  .chart-footnote {
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+
+  .site-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+  }
+
+  .site-footer p {
+    font-size: 0.7rem;
+    line-height: 1.45;
   }
 
   .benchmark-indicator {
@@ -626,8 +676,35 @@ body {
   }
 }
 
-@media (max-width: 640px) {
-  .chart-container {
-    min-height: 320px;
+@media (max-width: 480px) {
+  .site-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .trailing-panel {
+    max-height: 44vh;
+  }
+
+  .trailing-line-date,
+  .trailing-pred-row {
+    flex-wrap: wrap;
+    row-gap: 0.05rem;
+  }
+
+  .trailing-date-value,
+  .trailing-stat {
+    font-size: 0.88rem;
+  }
+
+  .trailing-label {
+    font-size: 0.58rem;
+  }
+
+  .chart-section-header .chart-subtitle {
+    margin-bottom: 0.5rem;
   }
 }
